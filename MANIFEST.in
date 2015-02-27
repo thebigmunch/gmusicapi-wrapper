@@ -1,0 +1,2 @@
+include CONTRIBUTING.md LICENSE README.md
+include gmusicapi_wrapper/_version.py
