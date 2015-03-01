@@ -24,7 +24,9 @@ class _Base(object):
 	"""Common client wrapper methods."""
 
 	@accept_singleton(basestring)
-	def get_local_songs(self, filepaths, formats=SUPPORTED_FORMATS, exclude_patterns=None, filters=None, filter_all=False):
+	def get_local_songs(
+			self, filepaths, include_filters=None, exclude_filters=None, all_include_filters=False,
+			all_exclude_filters=False, filepath_exclude_patterns=None, formats=SUPPORTED_FORMATS):
 		"""Load songs from local filepaths.
 
 		Returns a list of local song filepaths matching criteria,
@@ -33,25 +35,34 @@ class _Base(object):
 
 		:param filepaths: A list of filepaths or a single filepath.
 
-		:param formats: A tuple of supported file extension stings including the dot character.
-		  Default: ``('.mp3', '.flac', '.ogg', '.m4a')``
-
-		:param exclude_patterns: A list of Python regex patterns.
-		  Filepaths are excluded if they match any of the exclude patterns.
-
-		:param filters: A list of ``(field, pattern)`` tuples.
-		  Local files are filtered out if the given metadata fields match the given patterns.
-
-		  Fields are any valid mutagen metadata field for the file format.
+		:param include_filters: A list of ``(field, pattern)`` tuples.
+		  Fields are any valid Google Music metadata field available to the Musicmanager client.
 		  Patterns are Python regex patterns.
 
-		:param filter_all: If ``True``, all filter criteria must match to filter out a local file.
+		  Google Music songs are filtered out if the given metadata field values don't match any of the given patterns.
+
+		:param exclude_filters: A list of ``(field, pattern)`` tuples.
+		  Fields are any valid Google Music metadata field available to the Musicmanager client.
+		  Patterns are Python regex patterns.
+
+		  Google Music songs are filtered out if the given metadata field values match any of the given patterns.
+
+		:param all_include_filters: If ``True``, all include_filters criteria must match to include a song.
+
+		:param all_exclude_filters: If ``True``, all exclude_filters criteria must match to exclude a song.
+
+		:param filepath_exclude_patterns: A list of patterns to exclude.
+		  Filepaths are excluded if they match any of the exclude patterns.
+		  Patterns are Python regex patterns.
+
+		:param formats: A tuple of supported file extension stings including the dot character.
+		  Default: ``('.mp3', '.flac', '.ogg', '.m4a')``
 		"""
 
 		logger.info("Loading local songs...")
 
-		include_songs = []
-		exclude_songs = []
+		included_songs = []
+		excluded_songs = []
 
 		for path in filepaths:
 			if not isinstance(path, str):
@@ -63,24 +74,30 @@ class _Base(object):
 						if filename.lower().endswith(formats):
 							filepath = os.path.join(dirpath, filename)
 
-							if exclude_path(filepath, exclude_patterns):
-								exclude_songs.append(filepath)
+							if exclude_path(filepath, filepath_exclude_patterns):
+								excluded_songs.append(filepath)
 							else:
-								include_songs.append(filepath)
+								included_songs.append(filepath)
 
 			elif os.path.isfile(path) and path.lower().endswith(formats):
-				if exclude_path(path, exclude_patterns):
-					exclude_songs.append(path)
+				if exclude_path(path, filepath_exclude_patterns):
+					excluded_songs.append(path)
 				else:
-					include_songs.append(path)
+					included_songs.append(path)
 
-		local_songs, filter_songs = filter_local_songs(include_songs, filters, filter_all)
+		if include_filters or exclude_filters:
+			matched_songs, filtered_songs = filter_local_songs(
+				included_songs, include_filters, exclude_filters, all_include_filters, all_exclude_filters
+			)
+		else:
+			matched_songs = included_songs
+			filtered_songs = []
 
-		logger.info("Excluded {0} local songs.".format(len(exclude_songs)))
-		logger.info("Filtered {0} local songs.".format(len(filter_songs)))
-		logger.info("Loaded {0} local songs.\n".format(len(local_songs)))
+		logger.info("Excluded {0} local songs.".format(len(excluded_songs)))
+		logger.info("Filtered {0} local songs.".format(len(filtered_songs)))
+		logger.info("Loaded {0} local songs.".format(len(matched_songs)))
 
-		return local_songs, filter_songs, exclude_songs
+		return matched_songs, filtered_songs, excluded_songs
 
 
 class MobileClientWrapper(_Base):
@@ -95,22 +112,15 @@ class MobileClientWrapper(_Base):
 		self.api = Mobileclient(debug_logging=log)
 		self.api.logger.addHandler(logging.NullHandler())
 
-	def login(self, *args):
+	def login(self, username=None, password=None):
 		"""Authenticate the gmusicapi Mobileclient instance.
 
 		Returns ``True`` on successful login or ``False`` on unsuccessful login.
 
-		:param args: Username and password, in that order, are both optional arguments.
-		  If username isn't given, password can't be given.
-		  If neither is given, users are prompted.
-		"""
+		:param username: (Optional) Your Google Music username. Will be prompted if not given.
 
-		if len(args) == 2:
-			username, password = args[0], args[1]
-		elif len(args) == 1:
-			username, password = args[0], None
-		else:
-			username, password = None, None
+		:param password: (Optional) Your Google Music password. Will be prompted if not given.
+		"""
 
 		if not username:
 			username = raw_input("Enter your Google username or email address: ")
@@ -137,31 +147,45 @@ class MobileClientWrapper(_Base):
 
 		return self.api.logout()
 
-	def get_google_songs(self, filters=None, filter_all=False):
+	def get_google_songs(self, include_filters=None, exclude_filters=None, all_include_filters=False, all_exclude_filters=False):
 		"""Create song list from user's Google Music library using gmusicapi's Mobileclient.get_all_songs().
 
 		Returns a list of Google Music song dicts matching criteria and
 		a list of Google Music song dicts filtered out using filter criteria.
 
-		:param filters: A list of ``(field, pattern)`` tuples.
-		  Google Music songs are filtered out if the given metadata fields match the given patterns.
-
-		  Fields are any valid Google Music metadata field.
+		:param include_filters: A list of ``(field, pattern)`` tuples.
+		  Fields are any valid Google Music metadata field available to the Musicmanager client.
 		  Patterns are Python regex patterns.
 
-		:param filter_all: If ``True``, all filter criteria must match to filter out a Google Music song.
+		  Google Music songs are filtered out if the given metadata field values don't match any of the given patterns.
+
+		:param exclude_filters: A list of ``(field, pattern)`` tuples.
+		  Fields are any valid Google Music metadata field available to the Musicmanager client.
+		  Patterns are Python regex patterns.
+
+		  Google Music songs are filtered out if the given metadata field values match any of the given patterns.
+
+		:param all_include_filters: If ``True``, all include_filters criteria must match to include a song.
+
+		:param all_exclude_filters: If ``True``, all exclude_filters criteria must match to exclude a song.
 		"""
 
 		logger.info("Loading Google Music songs...")
 
-		songs = self.api.get_all_songs()
+		google_songs = self.api.get_all_songs()
 
-		google_songs, filter_songs = filter_google_songs(songs, filters, filter_all)
+		if include_filters or exclude_filters:
+			matched_songs, filtered_songs = filter_google_songs(
+				google_songs, include_filters, exclude_filters, all_include_filters, all_exclude_filters
+			)
+		else:
+			matched_songs = google_songs
+			filtered_songs = []
 
-		logger.info("Filtered {0} Google Music songs".format(len(filter_songs)))
-		logger.info("Loaded {0} Google Music songs\n".format(len(google_songs)))
+		logger.info("Filtered {0} Google Music songs".format(len(filtered_songs)))
+		logger.info("Loaded {0} Google Music songs".format(len(matched_songs)))
 
-		return google_songs, filter_songs
+		return matched_songs, filtered_songs
 
 
 class MusicManagerWrapper(_Base):
@@ -223,31 +247,45 @@ class MusicManagerWrapper(_Base):
 
 		return self.api.logout(revoke_oauth=revoke_oauth)
 
-	def get_google_songs(self, filters=None, filter_all=False):
+	def get_google_songs(self, include_filters=None, exclude_filters=None, all_include_filters=False, all_exclude_filters=False):
 		"""Create song list from user's Google Music library using gmusicapi's Musicmanager.get_uploaded_songs().
 
 		Returns a list of Google Music song dicts matching criteria and
 		a list of Google Music song dicts filtered out using filter criteria.
 
-		:param filters: A list of ``(field, pattern)`` tuples.
-		  Google Music songs are filtered out if the given metadata fields match the given patterns.
-
+		:param include_filters: A list of ``(field, pattern)`` tuples.
 		  Fields are any valid Google Music metadata field available to the Musicmanager client.
 		  Patterns are Python regex patterns.
 
-		:param filter_all: If ``True``, all filter criteria must match to filter out a Google Music song.
+		  Google Music songs are filtered out if the given metadata field values don't match any of the given patterns.
+
+		:param exclude_filters: A list of ``(field, pattern)`` tuples.
+		  Fields are any valid Google Music metadata field available to the Musicmanager client.
+		  Patterns are Python regex patterns.
+
+		  Google Music songs are filtered out if the given metadata field values match any of the given patterns.
+
+		:param all_include_filters: If ``True``, all include_filters criteria must match to include a song.
+
+		:param all_exclude_filters: If ``True``, all exclude_filters criteria must match to exclude a song.
 		"""
 
 		logger.info("Loading Google Music songs...")
 
-		songs = self.api.get_uploaded_songs()
+		google_songs = self.api.get_uploaded_songs()
 
-		google_songs, filter_songs = filter_google_songs(songs, filters, filter_all)
+		if include_filters or exclude_filters:
+			matched_songs, filtered_songs = filter_google_songs(
+				google_songs, include_filters, exclude_filters, all_include_filters, all_exclude_filters
+			)
+		else:
+			matched_songs = google_songs
+			filtered_songs = []
 
-		logger.info("Filtered {0} Google Music songs".format(len(filter_songs)))
-		logger.info("Loaded {0} Google Music songs\n".format(len(google_songs)))
+		logger.info("Filtered {0} Google Music songs".format(len(filtered_songs)))
+		logger.info("Loaded {0} Google Music songs".format(len(matched_songs)))
 
-		return google_songs, filter_songs
+		return matched_songs, filtered_songs
 
 	@accept_singleton(basestring)
 	def _download(self, songs, template=os.getcwd()):

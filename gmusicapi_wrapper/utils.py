@@ -107,10 +107,10 @@ def compare_song_collections(src_songs, dest_songs):
 	return missing_songs
 
 
-def exclude_path(path, exclude_patterns):
+def exclude_path(path, filepath_exclude_patterns=None):
 	"""Exclude file paths based on regex patterns."""
 
-	if exclude_patterns and re.search(exclude_patterns, path):
+	if filepath_exclude_patterns and re.search(filepath_exclude_patterns, path):
 		return True
 	else:
 		return False
@@ -125,20 +125,31 @@ def _get_valid_filter_fields():
 	return valid_fields
 
 
-def _match_filters(song, filters, filter_all):
-	"""Match a song metadata dict against a set of metadata filters."""
+def _check_filters(song, include_filters=None, exclude_filters=None, all_include_filters=False, all_exclude_filters=False):
+	"""Check a song metadata dict against a set of metadata filters."""
 
-	if filter_all:
-		if not all(field in song and re.search(value, song[field], re.I) for field, value in filters):
-			return False
-	else:
-		if not any(field in song and re.search(value, song[field], re.I) for field, value in filters):
-			return False
+	include = True
 
-	return True
+	if include_filters:
+		if all_include_filters:
+			if not all(field in song and re.search(value, song[field], re.I) for field, value in include_filters):
+				include = False
+		else:
+			if not any(field in song and re.search(value, song[field], re.I) for field, value in include_filters):
+				include = False
+
+	if exclude_filters:
+		if all_exclude_filters:
+			if all(field in song and re.search(value, song[field], re.I) for field, value in exclude_filters):
+				include = False
+		else:
+			if any(field in song and re.search(value, song[field], re.I) for field, value in exclude_filters):
+				include = False
+
+	return include
 
 
-def filter_google_songs(songs, filters, filter_all):
+def filter_google_songs(songs, include_filters=None, exclude_filters=None, all_include_filters=False, all_exclude_filters=False):
 	"""Match a Google Music song dict against a set of metadata filters.
 
 	Returns a list of Google Music song dicts matching criteria and
@@ -146,39 +157,54 @@ def filter_google_songs(songs, filters, filter_all):
 
 	:param songs: A list of Google Music song dicts.
 
-	:param filters: A list of ``(field, pattern)`` tuples.
-	  Google Music songs are filtered out if the given metadata fields match the given patterns.
-
+	:param include_filters: A list of ``(field, pattern)`` tuples.
 	  Fields are any valid Google Music metadata field available to the Musicmanager client.
 	  Patterns are Python regex patterns.
 
-	:param filter_all: If ``True``, all filter criteria must match to filter out a Google Music song.
+	  Google Music songs are filtered out if the given metadata field values don't match any of the given patterns.
+
+	:param exclude_filters: A list of ``(field, pattern)`` tuples.
+	  Fields are any valid Google Music metadata field available to the Musicmanager client.
+	  Patterns are Python regex patterns.
+
+	  Google Music songs are filtered out if the given metadata field values match any of the given patterns.
+
+	:param all_include_filters: If ``True``, all include_filters criteria must match to include a song.
+
+	:param all_exclude_filters: If ``True``, all exclude_filters criteria must match to exclude a song.
 	"""
 
-	match_songs = []
-	filter_songs = []
+	matched_songs = []
+	filtered_songs = []
+	include_filters_norm = []
+	exclude_filters_norm = []
+	valid_fields = _get_valid_filter_fields().items()
 
-	if filters:
-		norm_filters = []
-		valid_fields = _get_valid_filter_fields().items()
-
-		for filter_field, filter_value in filters:
+	if include_filters:
+		for filter_field, filter_value in include_filters:
 			for mutagen_field, google_field in valid_fields:
 				if filter_field == mutagen_field or filter_field == google_field:
-					norm_filters.append((google_field, filter_value))
+					include_filters_norm.append((google_field, filter_value))
 
+	if exclude_filters:
+		for filter_field, filter_value in exclude_filters:
+			for mutagen_field, google_field in valid_fields:
+				if filter_field == mutagen_field or filter_field == google_field:
+					exclude_filters_norm.append((google_field, filter_value))
+
+	if include_filters_norm or exclude_filters_norm:
 		for song in songs:
-			if _match_filters(song, norm_filters, filter_all):
-				match_songs.append(song)
+			if _check_filters(song, include_filters_norm, exclude_filters_norm, all_include_filters, all_exclude_filters):
+				matched_songs.append(song)
 			else:
-				filter_songs.append(song)
+				filtered_songs.append(song)
 	else:
-		match_songs += songs
+		matched_songs += songs
 
-	return match_songs, filter_songs
+	return matched_songs, filtered_songs
 
 
-def filter_local_songs(filepaths, filters, filter_all):
+def filter_local_songs(filepaths, include_filters=None, exclude_filters=None, all_include_filters=False, all_exclude_filters=False):
 	"""Match a local file against a set of metadata filters.
 
 	Returns a list of local song filepaths matching criteria and
@@ -186,26 +212,40 @@ def filter_local_songs(filepaths, filters, filter_all):
 
 	:param filepaths: A list of filepaths.
 
-	:param filters: A list of ``(field, pattern)`` tuples.
-	  Local files are filtered out if the given metadata fields match the given patterns.
-
-	  Fields are any valid mutagen metadata field for the file format.
+	:param include_filters: A list of ``(field, pattern)`` tuples.
+	  Fields are any valid Google Music metadata field available to the Musicmanager client.
 	  Patterns are Python regex patterns.
 
-	:param filter_all: If ``True``, all filter criteria must match to filter out a local file.
+	  Google Music songs are filtered out if the given metadata field values don't match any of the given patterns.
+
+	:param exclude_filters: A list of ``(field, pattern)`` tuples.
+	  Fields are any valid Google Music metadata field available to the Musicmanager client.
+	  Patterns are Python regex patterns.
+
+	  Google Music songs are filtered out if the given metadata field values match any of the given patterns.
+
+	:param all_include_filters: If ``True``, all include_filters criteria must match to include a song.
+
+	:param all_exclude_filters: If ``True``, all exclude_filters criteria must match to exclude a song.
 	"""
 
-	match_songs = []
-	filter_songs = []
-	norm_filters = []
+	matched_songs = []
+	filtered_songs = []
+	include_filters_norm = []
+	exclude_filters_norm = []
+	valid_fields = _get_valid_filter_fields().items()
 
-	if filters:
-		valid_fields = _get_valid_filter_fields().items()
-
-		for filter_field, filter_value in filters:
+	if include_filters:
+		for filter_field, filter_value in include_filters:
 			for mutagen_field, google_field in valid_fields:
 				if filter_field == mutagen_field or filter_field == google_field:
-					norm_filters.append((mutagen_field, filter_value))
+					include_filters_norm.append((mutagen_field, filter_value))
+
+	if exclude_filters:
+		for filter_field, filter_value in exclude_filters:
+			for mutagen_field, google_field in valid_fields:
+				if filter_field == mutagen_field or filter_field == google_field:
+					exclude_filters_norm.append((mutagen_field, filter_value))
 
 	for file in filepaths:
 		try:
@@ -213,15 +253,15 @@ def filter_local_songs(filepaths, filters, filter_all):
 		except:
 			logger.warning("{} is not a valid music file!".format(file))
 		else:
-			if filters:
-				if _match_filters(song, norm_filters, filter_all):
-					match_songs.append(file)
+			if include_filters_norm or exclude_filters_norm:
+				if _check_filters(song, include_filters_norm, exclude_filters_norm, all_include_filters, all_exclude_filters):
+					matched_songs.append(file)
 				else:
-					filter_songs.append(file)
+					filtered_songs.append(file)
 			else:
-				match_songs.append(file)
+				matched_songs.append(file)
 
-	return match_songs, filter_songs
+	return matched_songs, filtered_songs
 
 
 def template_to_file_name(template, metadata):
