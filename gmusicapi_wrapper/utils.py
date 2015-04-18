@@ -22,10 +22,16 @@ TEMPLATE_PATTERNS = {
 logger = logging.getLogger(__name__)
 
 
-def _mutagen_fields_to_single_value(file):
+def _get_mutagen_metadata(filepath):
+	"""Get mutagen metadata dict from a file."""
+
+	return mutagen.File(filepath, easy=True)
+
+
+def _mutagen_fields_to_single_value(metadata):
 	"""Replace mutagen metadata field list values in mutagen tags with the first list value."""
 
-	return dict((k, v[0]) for k, v in mutagen.File(file, easy=True).items())
+	return dict((k, v[0]) for k, v in metadata.items())
 
 
 def _filter_fields(song):
@@ -58,7 +64,7 @@ def _create_song_key(song):
 
 	metadata = []
 
-	song = song if isinstance(song, dict) else _mutagen_fields_to_single_value(song)
+	song = song if isinstance(song, dict) else _mutagen_fields_to_single_value(_get_mutagen_metadata(song))
 
 	assert isinstance(song, dict)
 
@@ -209,6 +215,7 @@ def filter_local_songs(filepaths, include_filters=None, exclude_filters=None, al
 
 	Returns a list of local song filepaths matching criteria and
 	a list of local song filepaths filtered out using filter criteria.
+	Invalid music files are also filtered out.
 
 	:param filepaths: A list of filepaths.
 
@@ -247,19 +254,20 @@ def filter_local_songs(filepaths, include_filters=None, exclude_filters=None, al
 				if filter_field == mutagen_field or filter_field == google_field:
 					exclude_filters_norm.append((mutagen_field, filter_value))
 
-	for file in filepaths:
+	for filepath in filepaths:
 		try:
-			song = _mutagen_fields_to_single_value(file)
+			song = _mutagen_fields_to_single_value(_get_mutagen_metadata(filepath))
 		except:
-			logger.warning("{} is not a valid music file!".format(file))
+			logger.warning("{} is not a valid music file!".format(filepath))
+			filtered_songs.append(filepath)
 		else:
 			if include_filters_norm or exclude_filters_norm:
 				if _check_filters(song, include_filters_norm, exclude_filters_norm, all_include_filters, all_exclude_filters):
-					matched_songs.append(file)
+					matched_songs.append(filepath)
 				else:
-					filtered_songs.append(file)
+					filtered_songs.append(filepath)
 			else:
-				matched_songs.append(file)
+				matched_songs.append(filepath)
 
 	return matched_songs, filtered_songs
 

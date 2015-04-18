@@ -85,13 +85,9 @@ class _Base(object):
 				else:
 					included_songs.append(path)
 
-		if include_filters or exclude_filters:
-			matched_songs, filtered_songs = filter_local_songs(
-				included_songs, include_filters, exclude_filters, all_include_filters, all_exclude_filters
-			)
-		else:
-			matched_songs = included_songs
-			filtered_songs = []
+		matched_songs, filtered_songs = filter_local_songs(
+			included_songs, include_filters, exclude_filters, all_include_filters, all_exclude_filters
+		)
 
 		logger.info("Excluded {0} local songs.".format(len(excluded_songs)))
 		logger.info("Filtered {0} local songs.".format(len(filtered_songs)))
