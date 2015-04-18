@@ -5,8 +5,8 @@ import re
 import sys
 from setuptools import find_packages, setup
 
-if not ((2, 6, 0) <= sys.version_info[:3] < (2, 8)):
-	sys.exit("gmusicapi-wrapper only supports Python 2.6 and 2.7.")
+if not ((2, 7, 0) <= sys.version_info[:3] < (2, 8)):
+	sys.exit("gmusicapi-wrapper only supports Python 2.7.")
 
 # From http://stackoverflow.com/a/7071358/1231454
 version_file = "gmusicapi_wrapper/__init__.py"
@@ -28,7 +28,6 @@ setup(
 	author='thebigmunch',
 	author_email='mail@thebigmunch.me',
 	url='https://github.com/thebigmunch/gmusicapi-wrapper',
-	download_url='https://github.com/thebigmunch/gmusicapi-wrapper',
 	keywords=[],
 	classifiers=[
 		'License :: OSI Approved :: MIT License',
@@ -36,10 +35,10 @@ setup(
 		'Programming Language :: Python :: 2.6',
 		'Programming Language :: Python :: 2.7',
 	],
+	packages=find_packages(),
 	install_requires=[
 		'gmusicapi',
 		'mutagen'
 	],
-	packages=find_packages(),
-	zip_safe=False,
+	zip_safe=False
 )
