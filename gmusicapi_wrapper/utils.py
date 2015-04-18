@@ -272,7 +272,7 @@ def filter_local_songs(filepaths, include_filters=None, exclude_filters=None, al
 	return matched_songs, filtered_songs
 
 
-def template_to_file_name(template, metadata):
+def template_to_filepath(template, metadata):
 	"""Create directory structure and file name based on metadata template.
 
 	Returns a filepath.
@@ -317,14 +317,14 @@ def template_to_file_name(template, metadata):
 				parts[i] = parts[i].replace(char, CHARACTER_REPLACEMENTS[char])
 
 	if drive:
-		filename = os.path.join(drive, os.sep, *parts) + '.mp3'
+		filepath = os.path.join(drive, os.sep, *parts)
 	else:
 		if os.path.isabs(template):
-			filename = os.path.join(os.sep, *parts) + '.mp3'
+			filepath = os.path.join(os.sep, *parts)
 		else:
-			filename = os.path.join(*parts) + '.mp3'
+			filepath = os.path.join(*parts)
 
-	dirname, __ = os.path.split(filename)
+	dirname, __ = os.path.split(filepath)
 
 	if dirname:
 		try:
@@ -333,4 +333,4 @@ def template_to_file_name(template, metadata):
 			if not os.path.isdir(dirname):
 				raise
 
-	return filename
+	return filepath

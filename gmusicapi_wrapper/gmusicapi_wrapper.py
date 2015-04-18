@@ -14,7 +14,7 @@ from gmusicapi import CallFailure
 from gmusicapi.clients import Mobileclient, Musicmanager, OAUTH_FILEPATH
 from gmusicapi.utils.utils import accept_singleton
 
-from .utils import exclude_path, filter_google_songs, filter_local_songs, template_to_file_name
+from .utils import exclude_path, filter_google_songs, filter_local_songs, template_to_filepath
 
 logger = logging.getLogger(__name__)
 
@@ -325,13 +325,13 @@ class MusicManagerWrapper(_Base):
 				metadata = mutagen.File(temp.name, easy=True)
 
 				if template != os.getcwd():
-					filename = template_to_file_name(template, metadata)
+					filepath = template_to_filepath(template, metadata) + '.mp3'
 				else:
-					filename = suggested_filename
+					filepath = suggested_filename
 
-				shutil.move(temp.name, filename)
+				shutil.move(temp.name, filepath)
 
-				result = ({song_id: filename}, {})
+				result = ({song_id: filepath}, {})
 			except CallFailure as e:
 				result = ({}, {song_id: e})
 
@@ -389,8 +389,8 @@ class MusicManagerWrapper(_Base):
 
 		if errors:
 			logger.info("\n\nThe following errors occurred:\n")
-			for filename, e in errors.items():
-				logger.info("{file} | {error}".format(file=filename, error=e))
+			for filepath, e in errors.items():
+				logger.info("{file} | {error}".format(file=filepath, error=e))
 			logger.info("\nThese files may need to be synced again.\n")
 
 		return results
@@ -421,13 +421,13 @@ class MusicManagerWrapper(_Base):
 		  Default: '320k'
 		"""
 
-		for file in filepaths:
+		for filepath in filepaths:
 			try:
-				logger.debug("Uploading -- {}".format(file))
-				uploaded, matched, not_uploaded = self.api.upload(file, enable_matching=enable_matching, transcode_quality=transcode_quality)
+				logger.debug("Uploading -- {}".format(filepath))
+				uploaded, matched, not_uploaded = self.api.upload(filepath, enable_matching=enable_matching, transcode_quality=transcode_quality)
 				result = (uploaded, matched, not_uploaded, {})
 			except CallFailure as e:
-				result = ({}, {}, {}, {file: e})
+				result = ({}, {}, {}, {filepath: e})
 
 			yield result
 
@@ -467,7 +467,7 @@ class MusicManagerWrapper(_Base):
 		exist_strings = ["ALREADY_EXISTS", "this song is already uploaded"]
 
 		for result in self._upload(filepaths, enable_matching=enable_matching, transcode_quality=transcode_quality):
-			file = filepaths[filenum]
+			filepath = filepaths[filenum]
 			filenum += 1
 
 			uploaded, matched, not_uploaded, error = result
@@ -475,7 +475,7 @@ class MusicManagerWrapper(_Base):
 			if uploaded:
 				logger.info(
 					"({num:>{pad}}/{total}) Successfully uploaded -- {file} ({song_id})".format(
-						num=filenum, pad=pad, total=total, file=file, song_id=uploaded[file]
+						num=filenum, pad=pad, total=total, file=filepath, song_id=uploaded[filepath]
 					)
 				)
 
@@ -483,24 +483,24 @@ class MusicManagerWrapper(_Base):
 			elif matched:
 				logger.info(
 					"({num:>{pad}}/{total}) Successfully scanned and matched -- {file} ({song_id})".format(
-						num=filenum, pad=pad, total=total, file=file, song_id=matched[file]
+						num=filenum, pad=pad, total=total, file=filepath, song_id=matched[filepath]
 					)
 				)
 
 				matched_songs.update(matched)
 			elif error:
-				logger.warning("({num:>{pad}}/{total}) Error on upload -- {file}".format(num=filenum, pad=pad, total=total, file=file))
+				logger.warning("({num:>{pad}}/{total}) Error on upload -- {file}".format(num=filenum, pad=pad, total=total, file=filepath))
 
 				errors.update(error)
 			else:
-				if any(exist_string in not_uploaded[file] for exist_string in exist_strings):
+				if any(exist_string in not_uploaded[filepath] for exist_string in exist_strings):
 					response = "ALREADY EXISTS"
 				else:
-					response = not_uploaded[file]
+					response = not_uploaded[filepath]
 
 				logger.info(
 					"({num:>{pad}}/{total}) Failed to upload -- {file} | {response}".format(
-						num=filenum, pad=pad, total=total, file=file, response=response
+						num=filenum, pad=pad, total=total, file=filepath, response=response
 					)
 				)
 
@@ -509,8 +509,8 @@ class MusicManagerWrapper(_Base):
 		if errors:
 			logger.info("\n\nThe following errors occurred:\n")
 
-			for file, e in errors.items():
-				logger.info("{file} | {error}".format(file=file, error=e))
+			for filepath, e in errors.items():
+				logger.info("{file} | {error}".format(file=filepath, error=e))
 			logger.info("\nThese filepaths may need to be synced again.\n")
 
 		return (uploaded_songs, matched_songs, not_uploaded_songs, errors)
