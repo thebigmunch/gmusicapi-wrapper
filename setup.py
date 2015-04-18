@@ -9,7 +9,7 @@ if not ((2, 6, 0) <= sys.version_info[:3] < (2, 8)):
 	sys.exit("gmusicapi-wrapper only supports Python 2.6 and 2.7.")
 
 # From http://stackoverflow.com/a/7071358/1231454
-version_file = "gmusicapi_wrapper/_version.py"
+version_file = "gmusicapi_wrapper/__init__.py"
 version_re = r"^__version__ = ['\"]([^'\"]*)['\"]"
 
 version_file_contents = open(version_file).read()
