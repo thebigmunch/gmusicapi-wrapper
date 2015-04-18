@@ -6,6 +6,7 @@ import getpass
 import logging
 import os
 import shutil
+import sys
 import tempfile
 
 import mutagen
@@ -65,8 +66,8 @@ class _Base(object):
 		excluded_songs = []
 
 		for path in filepaths:
-			if not isinstance(path, str):
-				path = path.decode('utf8')
+			if not isinstance(path, unicode):
+				path = path.decode(sys.getfilesystemencoding())
 
 			if os.path.isdir(path):
 				for dirpath, dirnames, filenames in os.walk(path):
@@ -78,7 +79,6 @@ class _Base(object):
 								excluded_songs.append(filepath)
 							else:
 								included_songs.append(filepath)
-
 			elif os.path.isfile(path) and path.lower().endswith(formats):
 				if exclude_path(path, filepath_exclude_patterns):
 					excluded_songs.append(path)
