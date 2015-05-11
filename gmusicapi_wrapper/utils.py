@@ -31,7 +31,7 @@ def _get_mutagen_metadata(filepath):
 def _mutagen_fields_to_single_value(metadata):
 	"""Replace mutagen metadata field list values in mutagen tags with the first list value."""
 
-	return dict((k, v[0]) for k, v in metadata.items())
+	return dict((k, v[0]) for k, v in metadata.items() if v)
 
 
 def _filter_fields(song):
