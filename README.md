@@ -1,7 +1,7 @@
 gmusicapi-wrapper
 =================
 
-A wrapper interface built on top of [gmusicapi](https://github.com/simon-weber/Unofficial-Google-Music-API).
+A wrapper interface around [gmusicapi](https://github.com/simon-weber/Unofficial-Google-Music-API).
 
 ## Requirements
 
@@ -23,6 +23,10 @@ A wrapper interface built on top of [gmusicapi](https://github.com/simon-weber/U
 ## Usage
 
 Docs coming soon. See the docstrings for usage information for now.
+
+## Contributing
+
+See the [CONTRIBUTING.md](https://github.com/thebigmunch/gmusicapi-wrapper/blob/master/CONTRIBUTING.md) file
 
 ## Contact
 

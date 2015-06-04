@@ -3,6 +3,7 @@
 
 import re
 import sys
+
 from setuptools import find_packages, setup
 
 if not ((2, 7, 0) <= sys.version_info[:3] < (2, 8)):
@@ -24,10 +25,11 @@ setup(
 	name='gmusicapi-wrapper',
 	version=version,
 	description='A wrapper interface around gmusicapi.',
+	url='https://github.com/thebigmunch/gmusicapi-wrapper',
 	license='MIT',
 	author='thebigmunch',
 	author_email='mail@thebigmunch.me',
-	url='https://github.com/thebigmunch/gmusicapi-wrapper',
+
 	keywords=[],
 	classifiers=[
 		'License :: OSI Approved :: MIT License',
@@ -35,10 +37,13 @@ setup(
 		'Programming Language :: Python :: 2.6',
 		'Programming Language :: Python :: 2.7',
 	],
-	packages=find_packages(),
+
 	install_requires=[
-		'gmusicapi',
+		'gmusicapi >= 5.0.0',  # Proper mp3 encoding detection/Mobileclient oauth login.
 		'mutagen'
 	],
+
+	packages=find_packages(),
+
 	zip_safe=False
 )
