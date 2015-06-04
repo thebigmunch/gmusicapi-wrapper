@@ -5,6 +5,7 @@ from __future__ import absolute_import, unicode_literals
 import logging
 import os
 import re
+import subprocess
 
 import mutagen
 
@@ -20,6 +21,10 @@ TEMPLATE_PATTERNS = {
 }
 
 logger = logging.getLogger(__name__)
+
+
+def convert_cygwin_path(path):
+	return subprocess.check_output(["cygpath", "-aw", path]).strip()
 
 
 def _get_mutagen_metadata(filepath):

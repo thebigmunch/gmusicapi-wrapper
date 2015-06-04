@@ -5,6 +5,7 @@ from __future__ import absolute_import, unicode_literals
 import getpass
 import logging
 import os
+import re
 import shutil
 import sys
 import tempfile
@@ -14,11 +15,14 @@ from gmusicapi import CallFailure
 from gmusicapi.clients import Mobileclient, Musicmanager, OAUTH_FILEPATH
 from gmusicapi.utils.utils import accept_singleton
 
-from .utils import exclude_path, filter_google_songs, filter_local_songs, template_to_filepath
+from .utils import convert_cygwin_path, exclude_path, filter_google_songs, filter_local_songs, template_to_filepath
 
 logger = logging.getLogger(__name__)
 
 SUPPORTED_FORMATS = ('.mp3', '.flac', '.ogg', '.m4a')
+
+# Compile regex to match Unix absolute paths from Cygwin.
+cygpath_re = re.compile("^(?:/[^/]+)*/?$")
 
 
 class _Base(object):
@@ -68,6 +72,9 @@ class _Base(object):
 		for path in filepaths:
 			if not isinstance(path, unicode):
 				path = path.decode(sys.getfilesystemencoding())
+
+			if os.name == 'nt' and cygpath_re.match(path):
+				path = convert_cygwin_path(path)
 
 			if os.path.isdir(path):
 				for dirpath, dirnames, filenames in os.walk(path):
