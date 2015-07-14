@@ -39,7 +39,7 @@ setup(
 	],
 
 	install_requires=[
-		'gmusicapi >= 5.0.0',  # Proper mp3 encoding detection/Mobileclient oauth login.
+		'gmusicapi >= 6.0.0',  # Mobileclient Oauth login.
 		'mutagen'
 	],
 
