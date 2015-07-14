@@ -329,13 +329,4 @@ def template_to_filepath(template, metadata):
 		else:
 			filepath = os.path.join(*parts)
 
-	dirname, __ = os.path.split(filepath)
-
-	if dirname:
-		try:
-			os.makedirs(dirname)
-		except OSError:
-			if not os.path.isdir(dirname):
-				raise
-
 	return filepath

@@ -339,6 +339,15 @@ class MusicManagerWrapper(_Base):
 				else:
 					filepath = suggested_filename
 
+				dirname = os.path.dirname(filepath)
+
+				if dirname:
+					try:
+						os.makedirs(dirname)
+					except OSError:
+						if not os.path.isdir(dirname):
+							raise
+
 				shutil.move(temp.name, filepath)
 
 				result = ({song_id: filepath}, {})
