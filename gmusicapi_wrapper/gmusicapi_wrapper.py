@@ -115,7 +115,7 @@ class MobileClientWrapper(_Base):
 		self.api = Mobileclient(debug_logging=log)
 		self.api.logger.addHandler(logging.NullHandler())
 
-	def login(self, username=None, password=None):
+	def login(self, username=None, password=None, android_id=None):
 		"""Authenticate the gmusicapi Mobileclient instance.
 
 		Returns ``True`` on successful login or ``False`` on unsuccessful login.
@@ -123,6 +123,9 @@ class MobileClientWrapper(_Base):
 		:param username: (Optional) Your Google Music username. Will be prompted if not given.
 
 		:param password: (Optional) Your Google Music password. Will be prompted if not given.
+
+		:param android_id: (Optional) The 16 hex digits from an Android device ID.
+		  Default: Use gmusicapi.Mobileclient.FROM_MAC_ADDRESS to create ID from computer's MAC address.
 		"""
 
 		if not username:
@@ -131,7 +134,10 @@ class MobileClientWrapper(_Base):
 		if not password:
 			password = getpass.getpass(b"Enter your Google Music password: ")
 
-		self.api.login(username, password)
+		if not android_id:
+			android_id = Mobileclient.FROM_MAC_ADDRESS
+
+		self.api.login(username, password, android_id)
 
 		if not self.api.is_authenticated():
 			logger.info("Sorry, login failed.")
