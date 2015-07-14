@@ -323,19 +323,24 @@ class MusicManagerWrapper(_Base):
 
 				suggested_filename, audio = self.api.download_song(song_id)
 
-				if "%suggested%" in template:
-					template = template.replace("%suggested%", suggested_filename.replace('.mp3', ''))
-
 				with tempfile.NamedTemporaryFile(delete=False) as temp:
 					temp.write(audio)
 
 				metadata = mutagen.File(temp.name, easy=True)
+
+				if "%suggested%" in template:
+					template = template.replace("%suggested%", suggested_filename.replace('.mp3', ''))
 
 				if os.name == 'nt' and cygpath_re.match(template):
 					template = convert_cygwin_path(template)
 
 				if template != os.getcwd():
 					filepath = template_to_filepath(template, metadata) + '.mp3'
+
+					dirname, basename = os.path.split(filepath)
+
+					if basename == '.mp3':
+						filepath = os.path.join(dirname, suggested_filename)
 				else:
 					filepath = suggested_filename
 
