@@ -331,6 +331,9 @@ class MusicManagerWrapper(_Base):
 
 				metadata = mutagen.File(temp.name, easy=True)
 
+				if os.name == 'nt' and cygpath_re.match(template):
+					template = convert_cygwin_path(template)
+
 				if template != os.getcwd():
 					filepath = template_to_filepath(template, metadata) + '.mp3'
 				else:
