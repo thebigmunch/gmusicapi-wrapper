@@ -160,6 +160,23 @@ def _check_filters(song, include_filters=None, exclude_filters=None, all_include
 	return include
 
 
+def _normalize_filters(filters, origin=None):
+	normalized_filters = []
+
+	if filters:
+		valid_fields = _get_valid_filter_fields().items()
+
+		for filter_field, filter_value in filters:
+			for mutagen_field, google_field in valid_fields:
+				if filter_field == mutagen_field or filter_field == google_field:
+					if origin == "local":
+						normalized_filters.append((mutagen_field, filter_value))
+					elif origin == "google":
+						normalized_filters.append((google_field, filter_value))
+
+	return normalized_filters
+
+
 def filter_google_songs(songs, include_filters=None, exclude_filters=None, all_include_filters=False, all_exclude_filters=False):
 	"""Match a Google Music song dict against a set of metadata filters.
 
@@ -187,21 +204,9 @@ def filter_google_songs(songs, include_filters=None, exclude_filters=None, all_i
 
 	matched_songs = []
 	filtered_songs = []
-	include_filters_norm = []
-	exclude_filters_norm = []
-	valid_fields = _get_valid_filter_fields().items()
 
-	if include_filters:
-		for filter_field, filter_value in include_filters:
-			for mutagen_field, google_field in valid_fields:
-				if filter_field == mutagen_field or filter_field == google_field:
-					include_filters_norm.append((google_field, filter_value))
-
-	if exclude_filters:
-		for filter_field, filter_value in exclude_filters:
-			for mutagen_field, google_field in valid_fields:
-				if filter_field == mutagen_field or filter_field == google_field:
-					exclude_filters_norm.append((google_field, filter_value))
+	include_filters_norm = _normalize_filters(include_filters, origin="google")
+	exclude_filters_norm = _normalize_filters(exclude_filters, origin="google")
 
 	if include_filters_norm or exclude_filters_norm:
 		for song in songs:
@@ -243,21 +248,9 @@ def filter_local_songs(filepaths, include_filters=None, exclude_filters=None, al
 
 	matched_songs = []
 	filtered_songs = []
-	include_filters_norm = []
-	exclude_filters_norm = []
-	valid_fields = _get_valid_filter_fields().items()
 
-	if include_filters:
-		for filter_field, filter_value in include_filters:
-			for mutagen_field, google_field in valid_fields:
-				if filter_field == mutagen_field or filter_field == google_field:
-					include_filters_norm.append((mutagen_field, filter_value))
-
-	if exclude_filters:
-		for filter_field, filter_value in exclude_filters:
-			for mutagen_field, google_field in valid_fields:
-				if filter_field == mutagen_field or filter_field == google_field:
-					exclude_filters_norm.append((mutagen_field, filter_value))
+	include_filters_norm = _normalize_filters(include_filters, origin="local")
+	exclude_filters_norm = _normalize_filters(exclude_filters, origin="local")
 
 	for filepath in filepaths:
 		try:
