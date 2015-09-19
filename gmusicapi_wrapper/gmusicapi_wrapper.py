@@ -462,7 +462,7 @@ class MusicManagerWrapper(_Base):
 			yield result
 
 	@accept_singleton(basestring)
-	def upload(self, filepaths, enable_matching=False, transcode_quality='320k'):
+	def upload(self, filepaths, enable_matching=False, transcode_quality='320k', delete_on_success=False):
 		"""Upload local filepaths to Google Music.
 
 		Returns a list of 4-tuples ``(uploaded, matched, not_uploaded, error)`` of dictionaries.
@@ -485,6 +485,9 @@ class MusicManagerWrapper(_Base):
 		  If string, pass to ffmpeg/avconv ``-b:a`` for libmp3lame `CBR quality
 		  <http://trac.ffmpeg.org/wiki/Encode/MP3#CBREncoding>'__.
 		  Default: '320k'
+
+		:param delete_on_success: Delete successfully uploaded local files.
+		  Default: False
 		"""
 
 		filenum = 0
@@ -510,6 +513,12 @@ class MusicManagerWrapper(_Base):
 				)
 
 				uploaded_songs.update(uploaded)
+
+				if delete_on_success:
+					try:
+						os.remove(filepath)
+					except:
+						logger.warning("Failed to remove {} after successful upload".format(filepath))
 			elif matched:
 				logger.info(
 					"({num:>{pad}}/{total}) Successfully scanned and matched -- {file} ({song_id})".format(
@@ -518,6 +527,12 @@ class MusicManagerWrapper(_Base):
 				)
 
 				matched_songs.update(matched)
+
+				if delete_on_success:
+					try:
+						os.remove(filepath)
+					except:
+						logger.warning("Failed to remove {} after successful upload".format(filepath))
 			elif error:
 				logger.warning("({num:>{pad}}/{total}) Error on upload -- {file}".format(num=filenum, pad=pad, total=total, file=filepath))
 
