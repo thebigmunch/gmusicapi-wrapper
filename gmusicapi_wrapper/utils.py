@@ -270,14 +270,17 @@ def filter_local_songs(filepaths, include_filters=None, exclude_filters=None, al
 	return matched_songs, filtered_songs
 
 
-def template_to_filepath(template, metadata):
+def template_to_filepath(template, metadata, template_patterns=TEMPLATE_PATTERNS):
 	"""Create directory structure and file name based on metadata template.
 
 	Returns a filepath.
 
-	:param template: A filepath which can include template patterns as definied by :const TEMPLATE_PATTERNS:.
+	:param template: A filepath which can include template patterns as defined by :param template_patterns:.
 
 	:param metadata: A mutagen metadata dict.
+
+	:param template_patterns: A dict of pattern:field pairs used to replace patterns with metadata field values.
+	  Default: :const TEMPLATE_PATTERNS:
 	"""
 
 	metadata = metadata if isinstance(metadata, dict) else _mutagen_fields_to_single_value(metadata)
@@ -299,16 +302,20 @@ def template_to_filepath(template, metadata):
 	parts.reverse()
 
 	for i, part in enumerate(parts):
-		for key in TEMPLATE_PATTERNS:
-			if key in part and TEMPLATE_PATTERNS[key] in metadata:
-				if key == '%track2%':
-					metadata['tracknumber'] = metadata['tracknumber'].zfill(2)
+		for key in template_patterns:
+			if key in part and template_patterns[key] in metadata:
+				# Force track number to be zero-padded to 2 digits.
+				# This is a potentially temporary solution to allowing arbitrary template patterns while allowing zero-padded track numbers.
+				if any(template_patterns[key] == tracknumber_field for tracknumber_field in ['tracknumber', 'track_number']):
+					metadata[template_patterns[key]] = metadata[template_patterns[key]].zfill(2)
+
+					# Save metadata if it is a mutagen song dict; pass if metadata is a Google song dict.
 					try:
 						metadata.save()
 					except:
 						pass
 
-				parts[i] = parts[i].replace(key, metadata[TEMPLATE_PATTERNS[key]])
+				parts[i] = parts[i].replace(key, metadata[template_patterns[key]])
 
 		for char in CHARACTER_REPLACEMENTS:
 			if char in parts[i]:
