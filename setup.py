@@ -39,7 +39,7 @@ setup(
 	],
 
 	install_requires=[
-		'gmusicapi >= 6.0.0',  # Mobileclient Oauth login.
+		'gmusicapi >= 7.0.0',  # New Music Manager upload endpoint.
 		'mutagen'
 	],
 
