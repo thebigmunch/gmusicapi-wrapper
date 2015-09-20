@@ -15,7 +15,7 @@ from gmusicapi import CallFailure
 from gmusicapi.clients import Mobileclient, Musicmanager, OAUTH_FILEPATH
 from gmusicapi.utils.utils import accept_singleton
 
-from .utils import convert_cygwin_path, exclude_path, filter_google_songs, filter_local_songs, template_to_filepath
+from .utils import convert_cygwin_path, exclude_path, filter_google_songs, filter_local_songs, template_to_filepath, walk_depth
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +31,8 @@ class _Base(object):
 	@accept_singleton(basestring)
 	def get_local_songs(
 			self, filepaths, include_filters=None, exclude_filters=None, all_include_filters=False,
-			all_exclude_filters=False, filepath_exclude_patterns=None, formats=SUPPORTED_FORMATS):
+			all_exclude_filters=False, filepath_exclude_patterns=None, recursive=True, max_depth=0,
+			formats=SUPPORTED_FORMATS):
 		"""Load songs from local filepaths.
 
 		Returns a list of local song filepaths matching criteria,
@@ -77,7 +78,7 @@ class _Base(object):
 				path = convert_cygwin_path(path)
 
 			if os.path.isdir(path):
-				for dirpath, dirnames, filenames in os.walk(path):
+				for dirpath, dirnames, filenames in walk_depth(path, recursive, max_depth):
 					for filename in filenames:
 						if filename.lower().endswith(formats):
 							filepath = os.path.join(dirpath, filename)

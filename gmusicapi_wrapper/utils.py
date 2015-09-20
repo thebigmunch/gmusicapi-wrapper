@@ -330,3 +330,24 @@ def template_to_filepath(template, metadata, template_patterns=TEMPLATE_PATTERNS
 			filepath = os.path.join(*parts)
 
 	return filepath
+
+
+def walk_depth(path, recursive=True, max_depth=0):
+	top_dir = os.path.abspath(path).rstrip(os.path.sep)
+	assert os.path.isdir(top_dir)
+
+	start_level = top_dir.count(os.path.sep)
+
+	for dirpath, dirnames, filenames in os.walk(top_dir):
+		if not recursive or max_depth <= 1:
+			yield dirpath, dirnames, filenames
+			break
+		elif max_depth:
+			level = dirpath.count(os.path.sep)
+
+			if level - start_level >= max_depth:
+				del dirnames[:]
+			else:
+				yield dirpath, dirnames, filenames
+		else:
+			yield dirpath, dirnames, filenames
