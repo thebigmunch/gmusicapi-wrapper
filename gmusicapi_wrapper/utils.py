@@ -339,7 +339,7 @@ def walk_depth(path, recursive=True, max_depth=0):
 	start_level = top_dir.count(os.path.sep)
 
 	for dirpath, dirnames, filenames in os.walk(top_dir):
-		if not recursive or max_depth <= 1:
+		if not recursive or max_depth == 1:
 			yield dirpath, dirnames, filenames
 			break
 		elif max_depth:
