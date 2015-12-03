@@ -39,6 +39,14 @@ def _mutagen_fields_to_single_value(metadata):
 	return dict((k, v[0]) for k, v in metadata.items() if v)
 
 
+def _split_field_to_single_value(field):
+	"""Convert number field values split by a '/' to a single number value."""
+
+	split_field = re.match("(\d+)/\d+", field)
+
+	return split_field.group(1) or field
+
+
 def _filter_fields(song):
 	"""Filter missing artist, album, title, or track fields to improve match accuracy."""
 
@@ -284,7 +292,6 @@ def template_to_filepath(template, metadata, template_patterns=TEMPLATE_PATTERNS
 	"""
 
 	metadata = metadata if isinstance(metadata, dict) else _mutagen_fields_to_single_value(metadata)
-
 	assert isinstance(metadata, dict)
 
 	drive, path = os.path.splitdrive(template)
@@ -307,13 +314,8 @@ def template_to_filepath(template, metadata, template_patterns=TEMPLATE_PATTERNS
 				# Force track number to be zero-padded to 2 digits.
 				# This is a potentially temporary solution to allowing arbitrary template patterns while allowing zero-padded track numbers.
 				if any(template_patterns[key] == tracknumber_field for tracknumber_field in ['tracknumber', 'track_number']):
-					metadata[template_patterns[key]] = metadata[template_patterns[key]].zfill(2)
-
-					# Save metadata if it is a mutagen song dict; pass if metadata is a Google song dict.
-					try:
-						metadata.save()
-					except:
-						pass
+					track_number = _split_field_to_single_value(metadata[template_patterns[key]])
+					metadata[template_patterns[key]] = track_number.zfill(2)
 
 				parts[i] = parts[i].replace(key, metadata[template_patterns[key]])
 
