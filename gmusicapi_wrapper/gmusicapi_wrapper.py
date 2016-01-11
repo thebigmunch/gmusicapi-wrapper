@@ -24,6 +24,10 @@ SUPPORTED_FORMATS = ('.mp3', '.flac', '.ogg', '.m4a')
 # Compile regex to match Unix absolute paths from Cygwin.
 cygpath_re = re.compile("^(?:/[^/]+)*/?$")
 
+# A regex for the Google Music id format .
+# Stolen with love from gmusicapi
+gm_id_re = re.compile(("{h}{{8}}-" + ("{h}{{4}}-" * 3) + "{h}{{12}}").format(h="[0-9a-f]"))
+
 
 class _Base(object):
 	"""Common client wrapper methods."""
@@ -541,14 +545,22 @@ class MusicManagerWrapper(_Base):
 			else:
 				if any(exist_string in not_uploaded[filepath] for exist_string in exist_strings):
 					response = "ALREADY EXISTS"
+
+					song_id = gm_id_re.search(not_uploaded[filepath]).group(0)
+
+					logger.info(
+						"({num:>{pad}}/{total}) Failed to upload -- {file} ({song_id}) | {response}".format(
+							num=filenum, pad=pad, total=total, file=filepath, response=response, song_id=song_id
+						)
+					)
 				else:
 					response = not_uploaded[filepath]
 
-				logger.info(
-					"({num:>{pad}}/{total}) Failed to upload -- {file} | {response}".format(
-						num=filenum, pad=pad, total=total, file=filepath, response=response
+					logger.info(
+						"({num:>{pad}}/{total}) Failed to upload -- {file} | {response}".format(
+							num=filenum, pad=pad, total=total, file=filepath, response=response
+						)
 					)
-				)
 
 				not_uploaded_songs.update(not_uploaded)
 
