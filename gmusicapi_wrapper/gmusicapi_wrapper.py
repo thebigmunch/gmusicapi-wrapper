@@ -518,12 +518,6 @@ class MusicManagerWrapper(_Base):
 				)
 
 				uploaded_songs.update(uploaded)
-
-				if delete_on_success:
-					try:
-						os.remove(filepath)
-					except:
-						logger.warning("Failed to remove {} after successful upload".format(filepath))
 			elif matched:
 				logger.info(
 					"({num:>{pad}}/{total}) Successfully scanned and matched -- {file} ({song_id})".format(
@@ -532,12 +526,6 @@ class MusicManagerWrapper(_Base):
 				)
 
 				matched_songs.update(matched)
-
-				if delete_on_success:
-					try:
-						os.remove(filepath)
-					except:
-						logger.warning("Failed to remove {} after successful upload".format(filepath))
 			elif error:
 				logger.warning("({num:>{pad}}/{total}) Error on upload -- {file}".format(num=filenum, pad=pad, total=total, file=filepath))
 
@@ -563,6 +551,12 @@ class MusicManagerWrapper(_Base):
 					)
 
 				not_uploaded_songs.update(not_uploaded)
+
+				if (uploaded or matched) and delete_on_success:
+					try:
+						os.remove(filepath)
+					except:
+						logger.warning("Failed to remove {} after successful upload".format(filepath))
 
 		if errors:
 			logger.info("\n\nThe following errors occurred:\n")
