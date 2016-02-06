@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# coding=utf-8
 
 from __future__ import absolute_import, unicode_literals
 
@@ -20,10 +20,18 @@ TEMPLATE_PATTERNS = {
 	'%genre%': 'genre', '%albumartist%': 'performer', '%disc%': 'discnumber'
 }
 
+SUPPORTED_FORMATS = ('.mp3', '.flac', '.ogg', '.m4a')
+
+# A regex for the Google Music id format .
+# Stolen with love from gmusicapi.
+gm_id_re = re.compile(("{h}{{8}}-" + ("{h}{{4}}-" * 3) + "{h}{{12}}").format(h="[0-9a-f]"))
+
 logger = logging.getLogger(__name__)
 
 
 def convert_cygwin_path(path):
+	"""Convert Unix path from Cygwin to Windows path."""
+
 	return subprocess.check_output(["cygpath", "-aw", path]).strip()
 
 
@@ -42,7 +50,7 @@ def _mutagen_fields_to_single_value(metadata):
 def _split_field_to_single_value(field):
 	"""Convert number field values split by a '/' to a single number value."""
 
-	split_field = re.match("(\d+)/\d+", field)
+	split_field = re.match(r'(\d+)/\d+', field)
 
 	return split_field.group(1) or field
 
@@ -60,14 +68,14 @@ def _normalize_metadata(metadata):
 	metadata = unicode(metadata)  # Convert metadata to unicode.
 	metadata = metadata.lower()  # Convert to lower case.
 
-	metadata = re.sub('\/\s*\d+', '', metadata)  # Remove "/<totaltracks>" from track number.
-	metadata = re.sub('^0+([0-9]+)', r'\1', metadata)  # Remove leading zero(s) from track number.
-	metadata = re.sub('^\d+\.+', '', metadata)  # Remove dots from track number.
-	metadata = re.sub('[^\w\s]', '', metadata)  # Remove any non-words.
-	metadata = re.sub('\s+', ' ', metadata)  # Reduce multiple spaces to a single space.
-	metadata = re.sub('^\s+', '', metadata)  # Remove leading space.
-	metadata = re.sub('\s+$', '', metadata)  # Remove trailing space.
-	metadata = re.sub('^the\s+', '', metadata, re.I)  # Remove leading "the".
+	metadata = re.sub(r'\/\s*\d+', '', metadata)  # Remove "/<totaltracks>" from track number.
+	metadata = re.sub(r'^0+([0-9]+)', r'\1', metadata)  # Remove leading zero(s) from track number.
+	metadata = re.sub(r'^\d+\.+', '', metadata)  # Remove dots from track number.
+	metadata = re.sub(r'[^\w\s]', '', metadata)  # Remove any non-words.
+	metadata = re.sub(r'\s+', ' ', metadata)  # Reduce multiple spaces to a single space.
+	metadata = re.sub(r'^\s+', '', metadata)  # Remove leading space.
+	metadata = re.sub(r'\s+$', '', metadata)  # Remove trailing space.
+	metadata = re.sub(r'^the\s+', '', metadata, re.I)  # Remove leading "the".
 
 	return metadata
 
@@ -131,8 +139,6 @@ def exclude_path(path, filepath_exclude_patterns=None):
 
 	if filepath_exclude_patterns and re.search(filepath_exclude_patterns, path):
 		return True
-	else:
-		return False
 
 
 def _get_valid_filter_fields():
@@ -278,7 +284,7 @@ def filter_local_songs(filepaths, include_filters=None, exclude_filters=None, al
 	return matched_songs, filtered_songs
 
 
-def template_to_filepath(template, metadata, template_patterns=TEMPLATE_PATTERNS):
+def template_to_filepath(template, metadata, template_patterns=None):
 	"""Create directory structure and file name based on metadata template.
 
 	Returns a filepath.
@@ -290,6 +296,9 @@ def template_to_filepath(template, metadata, template_patterns=TEMPLATE_PATTERNS
 	:param template_patterns: A dict of pattern:field pairs used to replace patterns with metadata field values.
 	  Default: :const TEMPLATE_PATTERNS:
 	"""
+
+	if not template_patterns:
+		template_patterns = TEMPLATE_PATTERNS
 
 	metadata = metadata if isinstance(metadata, dict) else _mutagen_fields_to_single_value(metadata)
 	assert isinstance(metadata, dict)
@@ -335,6 +344,8 @@ def template_to_filepath(template, metadata, template_patterns=TEMPLATE_PATTERNS
 
 
 def walk_depth(path, recursive=True, max_depth=0):
+	"""Walk a directory tree with configurable depth."""
+
 	top_dir = os.path.abspath(path).rstrip(os.path.sep)
 	assert os.path.isdir(top_dir)
 

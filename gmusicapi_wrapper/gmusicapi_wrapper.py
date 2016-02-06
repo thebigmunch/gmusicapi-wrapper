@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# coding=utf-8
 
 from __future__ import absolute_import, unicode_literals
 
@@ -7,7 +7,6 @@ import logging
 import os
 import re
 import shutil
-import sys
 import tempfile
 
 import mutagen
@@ -15,18 +14,12 @@ from gmusicapi import CallFailure
 from gmusicapi.clients import Mobileclient, Musicmanager, OAUTH_FILEPATH
 from gmusicapi.utils.utils import accept_singleton
 
-from .utils import convert_cygwin_path, exclude_path, filter_google_songs, filter_local_songs, template_to_filepath, walk_depth
+from .utils import SUPPORTED_FORMATS, gm_id_re, convert_cygwin_path, exclude_path, filter_google_songs, filter_local_songs, template_to_filepath, walk_depth
 
 logger = logging.getLogger(__name__)
 
-SUPPORTED_FORMATS = ('.mp3', '.flac', '.ogg', '.m4a')
-
 # Compile regex to match Unix absolute paths from Cygwin.
 cygpath_re = re.compile("^(?:/[^/]+)*/?$")
-
-# A regex for the Google Music id format .
-# Stolen with love from gmusicapi
-gm_id_re = re.compile(("{h}{{8}}-" + ("{h}{{4}}-" * 3) + "{h}{{12}}").format(h="[0-9a-f]"))
 
 
 class _Base(object):
@@ -82,7 +75,7 @@ class _Base(object):
 				path = convert_cygwin_path(path)
 
 			if os.path.isdir(path):
-				for dirpath, dirnames, filenames in walk_depth(path, recursive, max_depth):
+				for dirpath, _, filenames in walk_depth(path, recursive, max_depth):
 					for filename in filenames:
 						if filename.lower().endswith(formats):
 							filepath = os.path.join(dirpath, filename)
@@ -149,7 +142,7 @@ class MobileClientWrapper(_Base):
 
 			return False
 
-		logger.info("Successfully logged in.\n")
+		logger.info("Successfully logged in to Mobileclient.\n")
 
 		return True
 
@@ -246,7 +239,7 @@ class MusicManagerWrapper(_Base):
 
 			return False
 
-		logger.info("Successfully logged in.\n")
+		logger.info("Successfully logged in to Musicmanager.\n")
 
 		return True
 
@@ -288,13 +281,9 @@ class MusicManagerWrapper(_Base):
 
 		google_songs = self.api.get_uploaded_songs()
 
-		if include_filters or exclude_filters:
-			matched_songs, filtered_songs = filter_google_songs(
-				google_songs, include_filters, exclude_filters, all_include_filters, all_exclude_filters
-			)
-		else:
-			matched_songs = google_songs
-			filtered_songs = []
+		matched_songs, filtered_songs = filter_google_songs(
+			google_songs, include_filters, exclude_filters, all_include_filters, all_exclude_filters
+		)
 
 		logger.info("Filtered {0} Google Music songs".format(len(filtered_songs)))
 		logger.info("Loaded {0} Google Music songs".format(len(matched_songs)))
