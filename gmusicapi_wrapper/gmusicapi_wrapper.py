@@ -1,7 +1,5 @@
 # coding=utf-8
 
-from __future__ import absolute_import, unicode_literals
-
 import getpass
 import logging
 import os
@@ -25,7 +23,7 @@ cygpath_re = re.compile("^(?:/[^/]+)*/?$")
 class _Base(object):
 	"""Common client wrapper methods."""
 
-	@accept_singleton(basestring)
+	@accept_singleton(str)
 	def get_local_songs(
 			self, filepaths, include_filters=None, exclude_filters=None, all_include_filters=False,
 			all_exclude_filters=False, filepath_exclude_patterns=None, recursive=True, max_depth=0,
@@ -68,9 +66,6 @@ class _Base(object):
 		excluded_songs = []
 
 		for path in filepaths:
-			if not isinstance(path, unicode):
-				path = path.decode(sys.getfilesystemencoding())
-
 			if os.name == 'nt' and cygpath_re.match(path):
 				path = convert_cygwin_path(path)
 
@@ -127,10 +122,10 @@ class MobileClientWrapper(_Base):
 		"""
 
 		if not username:
-			username = raw_input("Enter your Google username or email address: ")
+			username = input("Enter your Google username or email address: ")
 
 		if not password:
-			password = getpass.getpass(b"Enter your Google Music password: ")
+			password = getpass.getpass("Enter your Google Music password: ")
 
 		if not android_id:
 			android_id = Mobileclient.FROM_MAC_ADDRESS
@@ -290,7 +285,7 @@ class MusicManagerWrapper(_Base):
 
 		return matched_songs, filtered_songs
 
-	@accept_singleton(basestring)
+	@accept_singleton(str)
 	def _download(self, songs, template=os.getcwd()):
 		"""Download the given songs one-by-one.
 
@@ -361,7 +356,7 @@ class MusicManagerWrapper(_Base):
 
 			yield result
 
-	@accept_singleton(basestring)
+	@accept_singleton(str)
 	def download(self, songs, template=os.getcwd()):
 		"""Download the given songs one-by-one.
 
@@ -419,7 +414,7 @@ class MusicManagerWrapper(_Base):
 
 		return results
 
-	@accept_singleton(basestring)
+	@accept_singleton(str)
 	def _upload(self, filepaths, enable_matching=False, transcode_quality='320k'):
 		"""Upload the given filepaths one-by-one.
 
@@ -455,7 +450,7 @@ class MusicManagerWrapper(_Base):
 
 			yield result
 
-	@accept_singleton(basestring)
+	@accept_singleton(str)
 	def upload(self, filepaths, enable_matching=False, transcode_quality='320k', delete_on_success=False):
 		"""Upload local filepaths to Google Music.
 

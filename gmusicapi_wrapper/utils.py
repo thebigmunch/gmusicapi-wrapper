@@ -1,7 +1,5 @@
 # coding=utf-8
 
-from __future__ import absolute_import, unicode_literals
-
 import logging
 import os
 import re
@@ -65,7 +63,7 @@ def _filter_fields(song):
 def _normalize_metadata(metadata):
 	"""Normalize metadata to improve match accuracy."""
 
-	metadata = unicode(metadata)  # Convert metadata to unicode.
+	metadata = str(metadata)  # Convert metadata to unicode.
 	metadata = metadata.lower()  # Convert to lower case.
 
 	metadata = re.sub(r'\/\s*\d+', '', metadata)  # Remove "/<totaltracks>" from track number.

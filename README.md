@@ -5,7 +5,7 @@ A wrapper interface around [gmusicapi](https://github.com/simon-weber/Unofficial
 
 ## Requirements
 
-* Python 2.7
+* Python 3.4+
 * [gmusicapi](https://github.com/simon-weber/Unofficial-Google-Music-API)
 * [mutagen](https://bitbucket.org/lazka/mutagen)
 * ffmpeg or avconv for uploading non-mp3 files (See [here](http://unofficial-google-music-api.readthedocs.org/en/latest/usage.html#usage))
