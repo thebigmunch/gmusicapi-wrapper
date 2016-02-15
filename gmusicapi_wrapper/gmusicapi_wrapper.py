@@ -536,11 +536,13 @@ class MusicManagerWrapper(_Base):
 
 				not_uploaded_songs.update(not_uploaded)
 
-				if (uploaded or matched) and delete_on_success:
-					try:
-						os.remove(filepath)
-					except:
-						logger.warning("Failed to remove {} after successful upload".format(filepath))
+			success = (uploaded or matched) or (not_uploaded and 'ALREADY_EXISTS' in not_uploaded[filepath])
+
+			if success and delete_on_success:
+				try:
+					os.remove(filepath)
+				except:
+					logger.warning("Failed to remove {} after successful upload".format(filepath))
 
 		if errors:
 			logger.info("\n\nThe following errors occurred:\n")
