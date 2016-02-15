@@ -2,6 +2,16 @@
 
 Notable changes for the [gmusicapi-wrapper](https://github.com/thebigmunch/gmusicapi-wrapper) project. This project adheres to [Semantic Versioning](http://semver.org/).
 
+
+## [0.2.1](https://github.com/thebigmunch/gmusicapi-wrapper/releases/tag/0.2.1) (2016-02-15)
+
+[Commits](https://github.com/thebigmunch/gmusicapi-wrapper/compare/0.2.0...0.2.1)
+
+### Fixed
+
+* Fix delete on success check.
+
+
 ## [0.2.0](https://github.com/thebigmunch/gmusicapi-wrapper/releases/tag/0.2.0) (2016-02-13)
 
 [Commits](https://github.com/thebigmunch/gmusicapi-wrapper/compare/0.1.0...0.2.0)
