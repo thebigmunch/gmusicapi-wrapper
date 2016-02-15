@@ -454,14 +454,15 @@ class MusicManagerWrapper(_Base):
 	def upload(self, filepaths, enable_matching=False, transcode_quality='320k', delete_on_success=False):
 		"""Upload local filepaths to Google Music.
 
-		Returns a list of 4-tuples ``(uploaded, matched, not_uploaded, error)`` of dictionaries.
+		Returns a list of result dictionaries.
 
-		    (
-		        {'<filepath>': '<new server id>'},                 # uploaded
-                {'<filepath>': '<new server id>'},                 # matched
-                {'<filepath>': '<reason (e.g. ALREADY_EXISTS)>'},  # not_uploaded
-                {'<filepath>': '<exception>'}                      # error
-		    )
+			[
+		    	{'filepath': <filepath>, 'result': 'uploaded', 'id': <song_id>},                                   # uploaded
+				{'filepath': <filepath>, 'result': 'matched', 'id': <song_id>},                                    # matched
+				{'filepath': <filepath>, 'result': 'error', 'message': <error_message>},                           # error
+				{'filepath': <filepath>, 'result': 'not_uploaded', 'id': <song_id>, 'message': <reason_message>},  # not_uploaded ALREADY_EXISTS
+				{'filepath': <filepath>, 'result': 'not_uploaded', 'message': <reason_message>}                    # not_uploaded
+			]
 
 		:param filepaths: A list of filepaths or a single filepath.
 
@@ -481,9 +482,7 @@ class MusicManagerWrapper(_Base):
 
 		filenum = 0
 		total = len(filepaths)
-		uploaded_songs = {}
-		matched_songs = {}
-		not_uploaded_songs = {}
+		results = []
 		errors = {}
 		pad = len(str(total))
 		exist_strings = ["ALREADY_EXISTS", "this song is already uploaded"]
@@ -501,7 +500,7 @@ class MusicManagerWrapper(_Base):
 					)
 				)
 
-				uploaded_songs.update(uploaded)
+				results.append({'filepath': filepath, 'result': 'uploaded', 'id': uploaded[filepath]})
 			elif matched:
 				logger.info(
 					"({num:>{pad}}/{total}) Successfully scanned and matched -- {file} ({song_id})".format(
@@ -509,10 +508,11 @@ class MusicManagerWrapper(_Base):
 					)
 				)
 
-				matched_songs.update(matched)
+				results.append({'filepath': filepath, 'result': 'matched', 'id': matched[filepath]})
 			elif error:
 				logger.warning("({num:>{pad}}/{total}) Error on upload -- {file}".format(num=filenum, pad=pad, total=total, file=filepath))
 
+				results.append({'filepath': filepath, 'result': 'error', 'message': error[filepath]})
 				errors.update(error)
 			else:
 				if any(exist_string in not_uploaded[filepath] for exist_string in exist_strings):
@@ -525,6 +525,8 @@ class MusicManagerWrapper(_Base):
 							num=filenum, pad=pad, total=total, file=filepath, response=response, song_id=song_id
 						)
 					)
+
+					results.append({'filepath': filepath, 'result': 'not_uploaded', 'id': song_id, 'message': not_uploaded[filepath]})
 				else:
 					response = not_uploaded[filepath]
 
@@ -534,7 +536,7 @@ class MusicManagerWrapper(_Base):
 						)
 					)
 
-				not_uploaded_songs.update(not_uploaded)
+					results.append({'filepath': filepath, 'result': 'not_uploaded', 'message': not_uploaded(filepath)})
 
 			success = (uploaded or matched) or (not_uploaded and 'ALREADY_EXISTS' in not_uploaded[filepath])
 
@@ -551,4 +553,4 @@ class MusicManagerWrapper(_Base):
 				logger.info("{file} | {error}".format(file=filepath, error=e))
 			logger.info("\nThese filepaths may need to be synced again.\n")
 
-		return (uploaded_songs, matched_songs, not_uploaded_songs, errors)
+		return results
