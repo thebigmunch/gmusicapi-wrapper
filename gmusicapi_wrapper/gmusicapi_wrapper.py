@@ -23,9 +23,10 @@ cygpath_re = re.compile("^(?:/[^/]+)*/?$")
 class _Base(object):
 	"""Common client wrapper methods."""
 
+	@staticmethod
 	@accept_singleton(str)
 	def get_local_songs(
-			self, filepaths, include_filters=None, exclude_filters=None, all_include_filters=False,
+			filepaths, include_filters=None, exclude_filters=None, all_include_filters=False,
 			all_exclude_filters=False, filepath_exclude_patterns=None, recursive=True, max_depth=0,
 			formats=SUPPORTED_FORMATS):
 		"""Load songs from local filepaths.
