@@ -6,7 +6,23 @@ from invoke import run, task
 
 
 @task
-def build(clean):
+def clean():
+	"""Clean the project directory of unwanted files and directories."""
+
+	run('rm -rf gmusicapi_wrapper.egg-info')
+	run('rm -rf .coverage')
+	run('rm -rf .tox')
+	run('rm -rf .cache')
+	run('rm -rf build/')
+	run('rm -rf dist/')
+	run('find . -name *.pyc -delete')
+	run('find . -name *.pyo -delete')
+	run('find . -name __pycache__ -delete -depth')
+	run('find . -name *~ -delete')
+
+
+@task(clean)
+def build():
 	"""Build sdist and bdist_wheel distributions."""
 
 	run('python setup.py sdist bdist_wheel')
@@ -24,22 +40,6 @@ def upload():
 	"""Upload gmusicapi_wrapper distributions using twine."""
 
 	run('twine upload dist/*')
-
-
-@task
-def clean():
-	"""Clean the project directory of unwanted files and directories."""
-
-	run('rm -rf gmusicapi_wrapper.egg-info')
-	run('rm -rf .coverage')
-	run('rm -rf .tox')
-	run('rm -rf .cache')
-	run('rm -rf build/')
-	run('rm -rf dist/')
-	run('find . -name *.pyc -delete')
-	run('find . -name *.pyo -delete')
-	run('find . -name __pycache__ -delete -depth')
-	run('find . -name *~ -delete')
 
 
 @task
