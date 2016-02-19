@@ -143,6 +143,77 @@ class _Base(object):
 
 		return included_playlists, excluded_playlists
 
+	@staticmethod
+	def get_local_playlist_songs(
+			playlist, include_filters=None, exclude_filters=None, all_include_filters=False,
+			all_exclude_filters=False, filepath_exclude_patterns=None, formats=SUPPORTED_FORMATS):
+		"""Load songs from local playlist.
+
+		Returns a list of local playlist song filepaths matching criteria,
+		a list of local playlist song filepaths filtered out using filter criteria,
+		and a list of local playlist song filepaths excluded using exclusion criteria.
+
+		:param playlist: An M3U(8) playlist.
+
+		:param include_filters: A list of ``(field, pattern)`` tuples.
+		  Fields are any valid Google Music metadata field available to the Musicmanager client.
+		  Patterns are Python regex patterns.
+
+		  Google Music songs are filtered out if the given metadata field values don't match any of the given patterns.
+
+		:param exclude_filters: A list of ``(field, pattern)`` tuples.
+		  Fields are any valid Google Music metadata field available to the Musicmanager client.
+		  Patterns are Python regex patterns.
+
+		  Google Music songs are filtered out if the given metadata field values match any of the given patterns.
+
+		:param all_include_filters: If ``True``, all include_filters criteria must match to include a song.
+
+		:param all_exclude_filters: If ``True``, all exclude_filters criteria must match to exclude a song.
+
+		:param filepath_exclude_patterns: A list of patterns to exclude.
+		  playlist are excluded if they match any of the exclude patterns.
+		  Patterns are Python regex patterns.
+
+		:param formats: A tuple of supported file extension strings including the dot character.
+		  Default: ``('.mp3', '.flac', '.ogg', '.m4a')``
+		"""
+
+		logger.info("Loading local playlist songs...")
+
+		if os.name == 'nt' and cygpath_re.match(playlist):
+			playlist = convert_cygwin_path(playlist)
+
+		included_songs = []
+		excluded_songs = []
+
+		base_filepath = os.path.dirname(os.path.abspath(playlist))
+
+		with open(playlist) as local_playlist:
+			for line in local_playlist.readlines():
+				line = line.strip()
+				if line.lower().endswith(formats):
+					path = line
+
+					if not os.path.isabs(path):
+						path = os.path.join(base_filepath, path)
+
+					if exclude_path(path, filepath_exclude_patterns):
+						excluded_songs.append(path)
+					else:
+						included_songs.append(path)
+
+		matched_songs, filtered_songs = filter_local_songs(
+			included_songs, include_filters, exclude_filters, all_include_filters, all_exclude_filters
+		)
+
+		logger.info("Excluded {0} local playlist songs.".format(len(excluded_songs)))
+		logger.info("Filtered {0} local playlist songs.".format(len(filtered_songs)))
+		logger.info("Loaded {0} local playlist songs.".format(len(matched_songs)))
+
+		return matched_songs, filtered_songs, excluded_songs
+
+
 class MobileClientWrapper(_Base):
 	"""Wraps gmusicapi's Mobileclient client interface to provide extra functionality and conveniences."""
 
