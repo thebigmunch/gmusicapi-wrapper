@@ -96,6 +96,52 @@ class _Base(object):
 
 		return matched_songs, filtered_songs, excluded_songs
 
+	@staticmethod
+	@accept_singleton(str)
+	def get_local_playlists(
+			filepaths, filepath_exclude_patterns=None, recursive=True, max_depth=0):
+		"""Load playlists from local filepaths.
+
+		Returns a list of local playlist filepaths matching criteria
+		and a list of local playlist filepaths excluded using exclusion criteria.
+
+		:param filepaths: A list of filepaths or a single filepath.
+
+		:param filepath_exclude_patterns: A list of patterns to exclude.
+		  Filepaths are excluded if they match any of the exclude patterns.
+		  Patterns are Python regex patterns.
+		"""
+
+		logger.info("Loading local playlists...")
+
+		included_playlists = []
+		excluded_playlists = []
+		supported_formats = ('m3u', 'm3u8')
+
+		for path in filepaths:
+			if os.name == 'nt' and cygpath_re.match(path):
+				path = convert_cygwin_path(path)
+
+			if os.path.isdir(path):
+				for dirpath, _, filenames in walk_depth(path, recursive, max_depth):
+					for filename in filenames:
+						if filename.lower().endswith(supported_formats):
+							filepath = os.path.join(dirpath, filename)
+
+							if exclude_path(filepath, filepath_exclude_patterns):
+								excluded_playlists.append(filepath)
+							else:
+								included_playlists.append(filepath)
+			elif os.path.isfile(path) and path.lower().endswith(supported_formats):
+				if exclude_path(path, filepath_exclude_patterns):
+					excluded_playlists.append(path)
+				else:
+					included_playlists.append(path)
+
+		logger.info("Excluded {0} local playlists.".format(len(excluded_playlists)))
+		logger.info("Loaded {0} local playlists.".format(len(included_playlists)))
+
+		return included_playlists, excluded_playlists
 
 class MobileClientWrapper(_Base):
 	"""Wraps gmusicapi's Mobileclient client interface to provide extra functionality and conveniences."""
