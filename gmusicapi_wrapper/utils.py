@@ -341,24 +341,23 @@ def template_to_filepath(template, metadata, template_patterns=None):
 	return filepath
 
 
-def walk_depth(path, recursive=True, max_depth=0):
-	"""Walk a directory tree with configurable depth."""
+def walk_depth(path, max_depth=float('inf')):
+	"""Walk a directory tree with configurable depth.
 
-	top_dir = os.path.abspath(path).rstrip(os.path.sep)
-	assert os.path.isdir(top_dir)
+	:param path: A directory path to walk.
 
-	start_level = top_dir.count(os.path.sep)
+	:param max_depth: The depth in the directory tree to walk.
+	  A depth of '0' limits the walk to the top directory.
+	  Default: Infinite depth.
+	"""
 
-	for dirpath, dirnames, filenames in os.walk(top_dir):
-		if not recursive or max_depth == 1:
-			yield dirpath, dirnames, filenames
-			break
-		elif max_depth:
-			level = dirpath.count(os.path.sep)
+	start_level = os.path.abspath(path).count(os.path.sep)
 
-			if level - start_level >= max_depth:
-				del dirnames[:]
-			else:
-				yield dirpath, dirnames, filenames
-		else:
-			yield dirpath, dirnames, filenames
+	for dir_entry in os.walk(path):
+		root, dirs, files = dir_entry
+		level = root.count(os.path.sep) - start_level
+
+		yield dir_entry
+
+		if level >= max_depth:
+			dirs[:] = []

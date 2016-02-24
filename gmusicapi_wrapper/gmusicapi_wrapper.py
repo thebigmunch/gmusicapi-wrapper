@@ -26,9 +26,8 @@ class _Base(object):
 	@staticmethod
 	@accept_singleton(str)
 	def get_local_songs(
-			filepaths, include_filters=None, exclude_filters=None, all_include_filters=False,
-			all_exclude_filters=False, filepath_exclude_patterns=None, recursive=True, max_depth=0,
-			formats=SUPPORTED_FORMATS):
+			filepaths, include_filters=None, exclude_filters=None, all_include_filters=False, all_exclude_filters=False,
+			filepath_exclude_patterns=None, max_depth=float('inf'), formats=SUPPORTED_FORMATS):
 		"""Load songs from local filepaths.
 
 		Returns a list of local song filepaths matching criteria,
@@ -57,6 +56,10 @@ class _Base(object):
 		  Filepaths are excluded if they match any of the exclude patterns.
 		  Patterns are Python regex patterns.
 
+		:param max_depth: The depth in the directory tree to walk.
+		  A depth of '0' limits the walk to the top directory.
+		  Default: Infinite depth.
+
 		:param formats: A tuple of supported file extension stings including the dot character.
 		  Default: ``('.mp3', '.flac', '.ogg', '.m4a')``
 		"""
@@ -71,10 +74,10 @@ class _Base(object):
 				path = convert_cygwin_path(path)
 
 			if os.path.isdir(path):
-				for dirpath, _, filenames in walk_depth(path, recursive, max_depth):
-					for filename in filenames:
-						if filename.lower().endswith(formats):
-							filepath = os.path.join(dirpath, filename)
+				for root, _, files in walk_depth(path, max_depth):
+					for f in files:
+						if f.lower().endswith(formats):
+							filepath = os.path.join(root, f)
 
 							if exclude_path(filepath, filepath_exclude_patterns):
 								excluded_songs.append(filepath)
@@ -98,8 +101,7 @@ class _Base(object):
 
 	@staticmethod
 	@accept_singleton(str)
-	def get_local_playlists(
-			filepaths, filepath_exclude_patterns=None, recursive=True, max_depth=0):
+	def get_local_playlists(filepaths, filepath_exclude_patterns=None, max_depth=float('inf')):
 		"""Load playlists from local filepaths.
 
 		Returns a list of local playlist filepaths matching criteria
@@ -110,6 +112,10 @@ class _Base(object):
 		:param filepath_exclude_patterns: A list of patterns to exclude.
 		  Filepaths are excluded if they match any of the exclude patterns.
 		  Patterns are Python regex patterns.
+
+		:param max_depth: The depth in the directory tree to walk.
+		  A depth of '0' limits the walk to the top directory.
+		  Default: Infinite depth.
 		"""
 
 		logger.info("Loading local playlists...")
@@ -123,10 +129,10 @@ class _Base(object):
 				path = convert_cygwin_path(path)
 
 			if os.path.isdir(path):
-				for dirpath, _, filenames in walk_depth(path, recursive, max_depth):
-					for filename in filenames:
-						if filename.lower().endswith(supported_formats):
-							filepath = os.path.join(dirpath, filename)
+				for root, _, files in walk_depth(path, max_depth):
+					for f in files:
+						if f.lower().endswith(supported_formats):
+							filepath = os.path.join(root, f)
 
 							if exclude_path(filepath, filepath_exclude_patterns):
 								excluded_playlists.append(filepath)
