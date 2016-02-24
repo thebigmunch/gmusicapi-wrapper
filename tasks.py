@@ -29,7 +29,7 @@ def build():
 
 
 @task(build)
-def deploy():
+def publish():
 	"""Build and upload gmusicapi_wrapper distributions."""
 
 	upload()
@@ -43,29 +43,39 @@ def upload():
 
 
 @task
-def cover(verbose=False):
+def cov(missing=False):
 	"""Shorter alias for coverage task."""
 
-	coverage(verbose)
+	coverage(missing)
 
 
 @task
-def coverage(verbose=False):
+def coverage(missing=False):
 	"""Run the gmusicapi_wrapper tests using pytest-cov for coverage."""
 
-	cov_cmd = 'py.test --cov ./gmusicapi_wrapper --cov ./tests ./gmusicapi_wrapper ./tests'
+	cov_run = 'coverage run --source gmusicapi_wrapper -m py.test'
+	cov_report = 'coverage report'
 
-	if verbose:
-		cov_cmd += ' -v'
+	if missing:
+		cov_report += ' -m'
 
-	run(cov_cmd)
+	run(cov_run)
+	run(cov_report)
 
 
 @task
-def test():
+def test(coverage=False, verbose=False):
 	"""Run the gmusicapi_wrapper tests using pytest."""
 
-	run('py.test')
+	if coverage:
+		test_cmd = 'py.test --cov ./gmusicapi_wrapper --cov ./tests ./gmusicapi_wrapper ./tests'
+	else:
+		test_cmd = 'py.test'
+
+	if verbose:
+		test_cmd += ' -v'
+
+	run(test_cmd)
 
 
 @task
