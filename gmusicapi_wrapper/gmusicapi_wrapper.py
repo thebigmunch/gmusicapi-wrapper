@@ -12,7 +12,11 @@ from gmusicapi import CallFailure
 from gmusicapi.clients import Mobileclient, Musicmanager, OAUTH_FILEPATH
 from gmusicapi.utils.utils import accept_singleton
 
-from .utils import SUPPORTED_FORMATS, gm_id_re, convert_cygwin_path, exclude_path, filter_google_songs, filter_local_songs, template_to_filepath, walk_depth
+from .utils import (
+	SUPPORTED_FORMATS, gm_id_re, convert_cygwin_path,
+	exclude_path, filter_google_songs, filter_local_songs,
+	template_to_filepath, walk_depth
+)
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +64,7 @@ class _Base(object):
 		  A depth of '0' limits the walk to the top directory.
 		  Default: Infinite depth.
 
-		:param formats: A tuple of supported file extension stings including the dot character.
+		:param formats: A tuple of supported file extension strings including the dot character.
 		  Default: ``('.mp3', '.flac', '.ogg', '.m4a')``
 		"""
 
@@ -198,13 +202,14 @@ class _Base(object):
 		with open(playlist) as local_playlist:
 			for line in local_playlist.readlines():
 				line = line.strip()
+
 				if line.lower().endswith(formats):
 					path = line
 
 					if not os.path.isabs(path):
 						path = os.path.join(base_filepath, path)
 
-					if exclude_path(path, filepath_exclude_patterns):
+					if exclude_path(path, filepath_exclude_patterns) or not os.isfile(path):
 						excluded_songs.append(path)
 					else:
 						included_songs.append(path)
@@ -442,7 +447,7 @@ class MusicManagerWrapper(_Base):
 
 				suggested_filename, audio = self.api.download_song(song_id)
 
-				with tempfile.NamedTemporaryFile(delete=False) as temp:
+				with tempfile.NamedTemporaryFile(suffix='.mp3', delete=False) as temp:
 					temp.write(audio)
 
 				metadata = mutagen.File(temp.name, easy=True)
@@ -667,7 +672,7 @@ class MusicManagerWrapper(_Base):
 			if success and delete_on_success:
 				try:
 					os.remove(filepath)
-				except:
+				except (OSError, PermissionError):
 					logger.warning("Failed to remove {} after successful upload".format(filepath))
 
 		if errors:
