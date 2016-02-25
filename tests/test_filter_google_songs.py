@@ -24,7 +24,7 @@ class TestIncludeFilters:
 	def test_filter_google_songs_single_include_filters_any_match(self):
 		"""Test gmusicapi_wrapper.utils.filter_google_songs with a single include filter matching with any."""
 
-		matched, filtered = filter_google_songs(TEST_SONGS_1, include_filters=[("title", "Take")], all_include_filters=False)
+		matched, filtered = filter_google_songs(TEST_SONGS_1, include_filters=[("title", "Take")], all_include=False)
 		expected_matched = [TEST_SONGS_1[0]]
 		expected_filtered = [TEST_SONGS_1[1]]
 
@@ -34,7 +34,7 @@ class TestIncludeFilters:
 	def test_filter_google_songs_single_include_filters_any_no_match(self):
 		"""Test gmusicapi_wrapper.utils.filter_google_songs with a single include filter not matching with any."""
 
-		matched, filtered = filter_google_songs(TEST_SONGS_1, include_filters=[("artist", "Modest")], all_include_filters=False)
+		matched, filtered = filter_google_songs(TEST_SONGS_1, include_filters=[("artist", "Modest")], all_include=False)
 		expected_matched = []
 		expected_filtered = TEST_SONGS_1
 
@@ -44,7 +44,7 @@ class TestIncludeFilters:
 	def test_filter_google_songs_multiple_include_filters_any_match(self):
 		"""Test gmusicapi_wrapper.utils.filter_google_songs with multiple include filters matching with any."""
 
-		matched, filtered = filter_google_songs(TEST_SONGS_1, include_filters=[("artist", "Muse"), ("title", "Take")], all_include_filters=False)
+		matched, filtered = filter_google_songs(TEST_SONGS_1, include_filters=[("artist", "Muse"), ("title", "Take")], all_include=False)
 		expected_matched = TEST_SONGS_1
 		expected_filtered = []
 
@@ -55,7 +55,7 @@ class TestIncludeFilters:
 		"""Test gmusicapi_wrapper.utils.filter_google_songs with multiple include filters not matching with any."""
 
 		matched, filtered = filter_google_songs(
-			TEST_SONGS_1, include_filters=[("artist", "Modest"), ("title", "Everything")], all_include_filters=False
+			TEST_SONGS_1, include_filters=[("artist", "Modest"), ("title", "Everything")], all_include=False
 		)
 		expected_matched = []
 		expected_filtered = TEST_SONGS_1
@@ -67,7 +67,7 @@ class TestIncludeFilters:
 		"""Test gmusicapi_wrapper.utils.filter_google_songs with multiple include filters matching with all."""
 
 		matched, filtered = filter_google_songs(
-			TEST_SONGS_1, include_filters=[("artist", "Muse"), ("title", "Take")], all_include_filters=True
+			TEST_SONGS_1, include_filters=[("artist", "Muse"), ("title", "Take")], all_include=True
 		)
 		expected_matched = [TEST_SONGS_1[0]]
 		expected_filtered = [TEST_SONGS_1[1]]
@@ -79,7 +79,7 @@ class TestIncludeFilters:
 		"""Test gmusicapi_wrapper.utils.filter_google_songs with multiple include filters not matching with all."""
 
 		matched, filtered = filter_google_songs(
-			TEST_SONGS_1, include_filters=[("artist", "Modest"), ("title", "Take")], all_include_filters=True
+			TEST_SONGS_1, include_filters=[("artist", "Modest"), ("title", "Take")], all_include=True
 		)
 		expected_matched = []
 		expected_filtered = TEST_SONGS_1
@@ -143,7 +143,7 @@ class TestExcludeFilters:
 		"""Test gmusicapi_wrapper.utils.filter_google_songs with multiple exclude filters matching with all."""
 
 		matched, filtered = filter_google_songs(
-			TEST_SONGS_1, exclude_filters=[("artist", "Muse"), ("title", "Take")], all_exclude_filters=True
+			TEST_SONGS_1, exclude_filters=[("artist", "Muse"), ("title", "Take")], all_exclude=True
 		)
 		expected_matched = [TEST_SONGS_1[1]]
 		expected_filtered = [TEST_SONGS_1[0]]
@@ -155,7 +155,7 @@ class TestExcludeFilters:
 		"""Test gmusicapi_wrapper.utils.filter_google_songs with multiple exclude filters not matching with all."""
 
 		matched, filtered = filter_google_songs(
-			TEST_SONGS_1, exclude_filters=[("artist", "Modest"), ("title", "Take")], all_exclude_filters=True
+			TEST_SONGS_1, exclude_filters=[("artist", "Modest"), ("title", "Take")], all_exclude=True
 		)
 		expected_matched = TEST_SONGS_1
 		expected_filtered = []

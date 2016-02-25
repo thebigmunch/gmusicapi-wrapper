@@ -7,22 +7,7 @@ import subprocess
 
 import mutagen
 
-CHARACTER_REPLACEMENTS = {
-	'\\': '-', '/': ',', ':': '-', '*': 'x', '<': '[',
-	'>': ']', '|': '!', '?': '', '"': "''"
-}
-
-TEMPLATE_PATTERNS = {
-	'%artist%': 'artist', '%title%': 'title', '%track%': 'tracknumber',
-	'%track2%': 'tracknumber', '%album%': 'album', '%date%': 'date',
-	'%genre%': 'genre', '%albumartist%': 'performer', '%disc%': 'discnumber'
-}
-
-SUPPORTED_FORMATS = ('.mp3', '.flac', '.ogg', '.m4a')
-
-# A regex for the Google Music id format .
-# Stolen with love from gmusicapi.
-gm_id_re = re.compile(("{h}{{8}}-" + ("{h}{{4}}-" * 3) + "{h}{{12}}").format(h="[0-9a-f]"))
+from .constants import CHARACTER_REPLACEMENTS, TEMPLATE_PATTERNS
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +15,7 @@ logger = logging.getLogger(__name__)
 def convert_cygwin_path(path):
 	"""Convert Unix path from Cygwin to Windows path."""
 
-	return subprocess.check_output(["cygpath", "-aw", path]).strip()
+	return subprocess.check_output(["cygpath", "-aw", path]).strip()  # pragma: no cover
 
 
 def _get_mutagen_metadata(filepath):
@@ -132,10 +117,10 @@ def compare_song_collections(src_songs, dest_songs):
 	return missing_songs
 
 
-def exclude_path(path, filepath_exclude_patterns=None):
+def exclude_path(path, exclude_patterns=None):
 	"""Exclude file paths based on regex patterns."""
 
-	if filepath_exclude_patterns and re.search(filepath_exclude_patterns, path):
+	if exclude_patterns and re.search(exclude_patterns, path):
 		return True
 
 
@@ -148,13 +133,13 @@ def _get_valid_filter_fields():
 	return valid_fields
 
 
-def _check_filters(song, include_filters=None, exclude_filters=None, all_include_filters=False, all_exclude_filters=False):
+def _check_filters(song, include_filters=None, exclude_filters=None, all_includes=False, all_excludes=False):
 	"""Check a song metadata dict against a set of metadata filters."""
 
 	include = True
 
 	if include_filters:
-		if all_include_filters:
+		if all_includes:
 			if not all(field in song and re.search(value, song[field], re.I) for field, value in include_filters):
 				include = False
 		else:
@@ -162,7 +147,7 @@ def _check_filters(song, include_filters=None, exclude_filters=None, all_include
 				include = False
 
 	if exclude_filters:
-		if all_exclude_filters:
+		if all_excludes:
 			if all(field in song and re.search(value, song[field], re.I) for field, value in exclude_filters):
 				include = False
 		else:
@@ -189,7 +174,7 @@ def _normalize_filters(filters, origin=None):
 	return normalized_filters
 
 
-def filter_google_songs(songs, include_filters=None, exclude_filters=None, all_include_filters=False, all_exclude_filters=False):
+def filter_google_songs(songs, include_filters=None, exclude_filters=None, all_includes=False, all_excludes=False):
 	"""Match a Google Music song dict against a set of metadata filters.
 
 	Returns a list of Google Music song dicts matching criteria and
@@ -209,9 +194,9 @@ def filter_google_songs(songs, include_filters=None, exclude_filters=None, all_i
 
 	  Google Music songs are filtered out if the given metadata field values match any of the given patterns.
 
-	:param all_include_filters: If ``True``, all include_filters criteria must match to include a song.
+	:param all_includes: If ``True``, all include_filters criteria must match to include a song.
 
-	:param all_exclude_filters: If ``True``, all exclude_filters criteria must match to exclude a song.
+	:param all_excludes: If ``True``, all exclude_filters criteria must match to exclude a song.
 	"""
 
 	matched_songs = []
@@ -222,7 +207,7 @@ def filter_google_songs(songs, include_filters=None, exclude_filters=None, all_i
 
 	if include_filters_norm or exclude_filters_norm:
 		for song in songs:
-			if _check_filters(song, include_filters_norm, exclude_filters_norm, all_include_filters, all_exclude_filters):
+			if _check_filters(song, include_filters_norm, exclude_filters_norm, all_includes, all_excludes):
 				matched_songs.append(song)
 			else:
 				filtered_songs.append(song)
@@ -232,7 +217,7 @@ def filter_google_songs(songs, include_filters=None, exclude_filters=None, all_i
 	return matched_songs, filtered_songs
 
 
-def filter_local_songs(filepaths, include_filters=None, exclude_filters=None, all_include_filters=False, all_exclude_filters=False):
+def filter_local_songs(filepaths, include_filters=None, exclude_filters=None, all_includes=False, all_excludes=False):
 	"""Match a local file against a set of metadata filters.
 
 	Returns a list of local song filepaths matching criteria and
@@ -242,20 +227,20 @@ def filter_local_songs(filepaths, include_filters=None, exclude_filters=None, al
 	:param filepaths: A list of filepaths.
 
 	:param include_filters: A list of ``(field, pattern)`` tuples.
-	  Fields are any valid Google Music metadata field available to the Musicmanager client.
+	  Fields are any valid mutagen metadata fields.
 	  Patterns are Python regex patterns.
 
-	  Google Music songs are filtered out if the given metadata field values don't match any of the given patterns.
+	  Local songs are filtered out if the given metadata field values don't match any of the given patterns.
 
 	:param exclude_filters: A list of ``(field, pattern)`` tuples.
-	  Fields are any valid Google Music metadata field available to the Musicmanager client.
+	  Fields are any valid mutagen metadata fields.
 	  Patterns are Python regex patterns.
 
-	  Google Music songs are filtered out if the given metadata field values match any of the given patterns.
+	  Local songs are filtered out if the given metadata field values match any of the given patterns.
 
-	:param all_include_filters: If ``True``, all include_filters criteria must match to include a song.
+	:param all_includes: If ``True``, all include_filters criteria must match to include a song.
 
-	:param all_exclude_filters: If ``True``, all exclude_filters criteria must match to exclude a song.
+	:param all_excludes: If ``True``, all exclude_filters criteria must match to exclude a song.
 	"""
 
 	matched_songs = []
@@ -267,12 +252,12 @@ def filter_local_songs(filepaths, include_filters=None, exclude_filters=None, al
 	for filepath in filepaths:
 		try:
 			song = _mutagen_fields_to_single_value(_get_mutagen_metadata(filepath))
-		except:
+		except IOError:
 			logger.warning("{} is not a valid music file!".format(filepath))
 			filtered_songs.append(filepath)
 		else:
 			if include_filters_norm or exclude_filters_norm:
-				if _check_filters(song, include_filters_norm, exclude_filters_norm, all_include_filters, all_exclude_filters):
+				if _check_filters(song, include_filters_norm, exclude_filters_norm, all_includes, all_excludes):
 					matched_songs.append(filepath)
 				else:
 					filtered_songs.append(filepath)
@@ -354,7 +339,7 @@ def walk_depth(path, max_depth=float('inf')):
 	start_level = os.path.abspath(path).count(os.path.sep)
 
 	for dir_entry in os.walk(path):
-		root, dirs, files = dir_entry
+		root, dirs, _ = dir_entry
 		level = root.count(os.path.sep) - start_level
 
 		yield dir_entry
