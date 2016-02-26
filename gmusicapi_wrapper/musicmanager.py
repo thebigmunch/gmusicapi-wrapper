@@ -76,7 +76,9 @@ class MusicManagerWrapper(_Base):
 
 		return self.api.logout(revoke_oauth=revoke_oauth)
 
-	def get_google_songs(self, include_filters=None, exclude_filters=None, all_includes=False, all_excludes=False):
+	def get_google_songs(
+		self, include_filters=None, exclude_filters=None, all_includes=False, all_excludes=False,
+		uploaded=True, purchased=True):
 		"""Create song list from user's Google Music library using gmusicapi's Musicmanager.get_uploaded_songs().
 
 		Returns a list of Google Music song dicts matching criteria and
@@ -97,11 +99,26 @@ class MusicManagerWrapper(_Base):
 		:param all_includes: If ``True``, all include_filters criteria must match to include a song.
 
 		:param all_excludes: If ``True``, all exclude_filters criteria must match to exclude a song.
+
+		:param uploaded: Include uploaded songs.
+		  Default: True
+
+		:param purchased: Include purchased songs.
+		  Default: True
 		"""
+
+		if not uploaded and not purchased:
+			raise ValueError("One or both of uploaded/purchased parameters must be True.")
 
 		logger.info("Loading Google Music songs...")
 
-		google_songs = self.api.get_uploaded_songs()
+		google_songs = []
+
+		if uploaded:
+			google_songs += self.api.get_uploaded_songs()
+
+		if purchased:
+			google_songs += self.api.get_purchased_songs()
 
 		matched_songs, filtered_songs = filter_google_songs(
 			google_songs, include_filters, exclude_filters, all_includes, all_excludes
