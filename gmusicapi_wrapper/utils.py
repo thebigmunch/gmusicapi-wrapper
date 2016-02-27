@@ -252,7 +252,7 @@ def filter_local_songs(filepaths, include_filters=None, exclude_filters=None, al
 	for filepath in filepaths:
 		try:
 			song = _mutagen_fields_to_single_value(_get_mutagen_metadata(filepath))
-		except IOError:
+		except mutagen.MutagenError:
 			logger.warning("{} is not a valid music file!".format(filepath))
 			filtered_songs.append(filepath)
 		else:
