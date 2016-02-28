@@ -94,13 +94,9 @@ class MobileClientWrapper(_Base):
 
 		google_songs = self.api.get_all_songs()
 
-		if include_filters or exclude_filters:
-			matched_songs, filtered_songs = filter_google_songs(
-				google_songs, include_filters, exclude_filters, all_includes, all_excludes
-			)
-		else:
-			matched_songs = google_songs
-			filtered_songs = []
+		matched_songs, filtered_songs = filter_google_songs(
+			google_songs, include_filters, exclude_filters, all_includes, all_excludes
+		)
 
 		logger.info("Filtered {0} Google Music songs".format(len(filtered_songs)))
 		logger.info("Loaded {0} Google Music songs".format(len(matched_songs)))
