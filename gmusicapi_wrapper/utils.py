@@ -6,8 +6,9 @@ import re
 import subprocess
 
 import mutagen
+from gmusicapi.utils.utils import accept_singleton
 
-from .constants import CHARACTER_REPLACEMENTS, TEMPLATE_PATTERNS
+from .constants import CHARACTER_REPLACEMENTS, CYGPATH_RE, TEMPLATE_PATTERNS
 
 logger = logging.getLogger(__name__)
 
@@ -117,11 +118,58 @@ def compare_song_collections(src_songs, dest_songs):
 	return missing_songs
 
 
-def exclude_path(path, exclude_patterns=None):
-	"""Exclude file paths based on regex patterns."""
+@accept_singleton(str)
+def get_supported_filepaths(filepaths, supported_extensions, max_depth=float('inf')):
+	"""Get filepaths with supported extensions from given filepaths.
 
-	if exclude_patterns and re.search(exclude_patterns, path):
-		return True
+	:param filepaths: A list of filepaths or a single filepath.
+
+	:param supported_extensions: A tuple of supported extensions or a single extension string.
+	"""
+
+	supported_filepaths = []
+
+	for path in filepaths:
+		if os.name == 'nt' and CYGPATH_RE.match(path):
+			path = convert_cygwin_path(path)
+
+		if os.path.isdir(path):
+			for root, _, files in walk_depth(path, max_depth):
+				for f in files:
+					if f.lower().endswith(supported_extensions):
+						supported_filepaths.append(os.path.join(root, f))
+		elif os.path.isfile(path) and path.lower().endswith(supported_extensions):
+			supported_filepaths.append(path)
+
+	return supported_filepaths
+
+
+@accept_singleton(str)
+def exclude_filepaths(filepaths, exclude_patterns=None):
+	"""Exclude file paths based on regex patterns.
+
+	Returns a list of filepaths to include and a list of filepaths to exclude.
+
+	:param filepaths: A list of filepaths or a single filepath.
+
+	:param exclude_patterns: A list of Python regex patterns.
+	"""
+
+	if not exclude_patterns:
+		return filepaths, []
+
+	exclude_re = re.compile("|".join(pattern for pattern in exclude_patterns))
+
+	included_songs = []
+	excluded_songs = []
+
+	for filepath in filepaths:
+		if exclude_patterns and exclude_re.search(filepath):
+			excluded_songs.append(filepath)
+		else:
+			included_songs.append(filepath)
+
+	return included_songs, excluded_songs
 
 
 def _get_valid_filter_fields():

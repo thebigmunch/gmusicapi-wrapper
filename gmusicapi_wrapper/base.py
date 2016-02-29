@@ -6,7 +6,7 @@ import os
 from gmusicapi.utils.utils import accept_singleton
 
 from.constants import CYGPATH_RE, SUPPORTED_PLAYLIST_FORMATS, SUPPORTED_SONG_FORMATS
-from .utils import convert_cygwin_path, exclude_path, filter_local_songs, walk_depth
+from .utils import convert_cygwin_path, exclude_filepaths, filter_local_songs, get_supported_filepaths
 
 logger = logging.getLogger(__name__)
 
@@ -54,28 +54,9 @@ class _Base(object):
 
 		logger.info("Loading local songs...")
 
-		included_songs = []
-		excluded_songs = []
+		supported_filepaths = get_supported_filepaths(filepaths, SUPPORTED_SONG_FORMATS, max_depth)
 
-		for path in filepaths:
-			if os.name == 'nt' and CYGPATH_RE.match(path):
-				path = convert_cygwin_path(path)
-
-			if os.path.isdir(path):
-				for root, _, files in walk_depth(path, max_depth):
-					for f in files:
-						if f.lower().endswith(SUPPORTED_SONG_FORMATS):
-							filepath = os.path.join(root, f)
-
-							if exclude_path(filepath, exclude_patterns):
-								excluded_songs.append(filepath)
-							else:
-								included_songs.append(filepath)
-			elif os.path.isfile(path) and path.lower().endswith(SUPPORTED_SONG_FORMATS):
-				if exclude_path(path, exclude_patterns):
-					excluded_songs.append(path)
-				else:
-					included_songs.append(path)
+		included_songs, excluded_songs = exclude_filepaths(supported_filepaths, exclude_patterns)
 
 		matched_songs, filtered_songs = filter_local_songs(
 			included_songs, include_filters, exclude_filters, all_includes, all_excludes
@@ -111,25 +92,9 @@ class _Base(object):
 		included_playlists = []
 		excluded_playlists = []
 
-		for path in filepaths:
-			if os.name == 'nt' and CYGPATH_RE.match(path):
-				path = convert_cygwin_path(path)
+		supported_filepaths = get_supported_filepaths(filepaths, SUPPORTED_PLAYLIST_FORMATS, max_depth)
 
-			if os.path.isdir(path):
-				for root, _, files in walk_depth(path, max_depth):
-					for f in files:
-						if f.lower().endswith(SUPPORTED_PLAYLIST_FORMATS):
-							filepath = os.path.join(root, f)
-
-							if exclude_path(filepath, exclude_patterns):
-								excluded_playlists.append(filepath)
-							else:
-								included_playlists.append(filepath)
-			elif os.path.isfile(path) and path.lower().endswith(SUPPORTED_PLAYLIST_FORMATS):
-				if exclude_path(path, exclude_patterns):
-					excluded_playlists.append(path)
-				else:
-					included_playlists.append(path)
+		included_playlists, excluded_playlists = exclude_filepaths(supported_filepaths, exclude_patterns)
 
 		logger.info("Excluded {0} local playlists.".format(len(excluded_playlists)))
 		logger.info("Loaded {0} local playlists.".format(len(included_playlists)))
@@ -189,7 +154,7 @@ class _Base(object):
 					if not os.path.isabs(path):
 						path = os.path.join(base_filepath, path)
 
-					if exclude_path(path, exclude_patterns) or not os.path.isfile(path):
+					if exclude_filepaths(path, exclude_patterns) or not os.path.isfile(path):
 						excluded_songs.append(path)
 					else:
 						included_songs.append(path)
