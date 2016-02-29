@@ -118,7 +118,7 @@ def compare_song_collections(src_songs, dest_songs):
 	return missing_songs
 
 
-@accept_singleton(str)
+@accept_singleton(str, 0)
 def get_supported_filepaths(filepaths, supported_extensions, max_depth=float('inf')):
 	"""Get filepaths with supported extensions from given filepaths.
 
@@ -144,7 +144,7 @@ def get_supported_filepaths(filepaths, supported_extensions, max_depth=float('in
 	return supported_filepaths
 
 
-@accept_singleton(str)
+@accept_singleton(str, 0)
 def exclude_filepaths(filepaths, exclude_patterns=None):
 	"""Exclude file paths based on regex patterns.
 
