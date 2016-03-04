@@ -20,8 +20,7 @@ class MobileClientWrapper(_Base):
 		:param enable_logging: Enable gmusicapi's debug_logging option.
 		"""
 
-		self.api = Mobileclient(debug_logging=enable_logging)
-		self.api.logger.addHandler(logging.NullHandler())
+		super().__init__(Mobileclient, enable_logging=enable_logging)
 
 	def login(self, username=None, password=None, android_id=None):
 		"""Authenticate the gmusicapi Mobileclient instance.

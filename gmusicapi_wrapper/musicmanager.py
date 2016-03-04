@@ -25,8 +25,7 @@ class MusicManagerWrapper(_Base):
 		:param enable_logging: Enable gmusicapi's debug_logging option.
 		"""
 
-		self.api = Musicmanager(debug_logging=enable_logging)
-		self.api.logger.addHandler(logging.NullHandler())
+		super().__init__(Musicmanager, enable_logging=enable_logging)
 
 	def login(self, oauth_filename="oauth", uploader_id=None):
 		"""Authenticate the gmusicapi Musicmanager instance.

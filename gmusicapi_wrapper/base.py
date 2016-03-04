@@ -12,6 +12,15 @@ logger = logging.getLogger(__name__)
 class _Base(object):
 	"""Common client wrapper methods."""
 
+	def __init__(self, cls, enable_logging=False):
+		"""
+
+		:param enable_logging: Enable gmusicapi's debug_logging option.
+		"""
+
+		self.api = cls(debug_logging=enable_logging)
+		self.api.logger.addHandler(logging.NullHandler())
+
 	@staticmethod
 	@cast_to_list(0)
 	def get_local_songs(
