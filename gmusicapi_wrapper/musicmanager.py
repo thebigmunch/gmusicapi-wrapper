@@ -8,11 +8,10 @@ import tempfile
 import mutagen
 from gmusicapi import CallFailure
 from gmusicapi.clients import Musicmanager, OAUTH_FILEPATH
-from gmusicapi.utils.utils import accept_singleton
 
 from .base import _Base
 from .constants import CYGPATH_RE, GM_ID_RE
-from .utils import convert_cygwin_path, filter_google_songs, template_to_filepath
+from .utils import cast_to_list, convert_cygwin_path, filter_google_songs, template_to_filepath
 
 logger = logging.getLogger(__name__)
 
@@ -129,7 +128,7 @@ class MusicManagerWrapper(_Base):
 
 		return matched_songs, filtered_songs
 
-	@accept_singleton(str)
+	@cast_to_list(1)
 	def _download(self, songs, template=os.getcwd()):
 		"""Download the given songs one-by-one.
 
@@ -200,7 +199,7 @@ class MusicManagerWrapper(_Base):
 
 			yield result
 
-	@accept_singleton(str)
+	@cast_to_list(1)
 	def download(self, songs, template=None):
 		"""Download the given songs one-by-one.
 
@@ -261,7 +260,7 @@ class MusicManagerWrapper(_Base):
 
 		return results
 
-	@accept_singleton(str)
+	@cast_to_list(1)
 	def _upload(self, filepaths, enable_matching=False, transcode_quality='320k'):
 		"""Upload the given filepaths one-by-one.
 
@@ -297,7 +296,7 @@ class MusicManagerWrapper(_Base):
 
 			yield result
 
-	@accept_singleton(str)
+	@cast_to_list(1)
 	def upload(self, filepaths, enable_matching=False, transcode_quality='320k', delete_on_success=False):
 		"""Upload local filepaths to Google Music.
 

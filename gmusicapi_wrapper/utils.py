@@ -4,13 +4,28 @@ import logging
 import os
 import re
 import subprocess
+from functools import wraps
 
 import mutagen
-from gmusicapi.utils.utils import accept_singleton
 
 from .constants import CHARACTER_REPLACEMENTS, CYGPATH_RE, TEMPLATE_PATTERNS
 
 logger = logging.getLogger(__name__)
+
+
+# Created to remove the dependency on gmusicapi's accept_singleton decorator.
+def cast_to_list(pos):
+	def func_decorator(func):
+		@wraps(func)
+		def wrapper(*args, **kwargs):
+			if not isinstance(args[pos], list):
+				args = list(args)
+				args[pos] = [args[pos]]
+				args = tuple(args)
+
+			return func(*args, **kwargs)
+		return wrapper
+	return func_decorator
 
 
 def convert_cygwin_path(path):
@@ -118,7 +133,7 @@ def compare_song_collections(src_songs, dest_songs):
 	return missing_songs
 
 
-@accept_singleton(str, 0)
+@cast_to_list(0)
 def get_supported_filepaths(filepaths, supported_extensions, max_depth=float('inf')):
 	"""Get filepaths with supported extensions from given filepaths.
 
@@ -144,7 +159,7 @@ def get_supported_filepaths(filepaths, supported_extensions, max_depth=float('in
 	return supported_filepaths
 
 
-@accept_singleton(str, 0)
+@cast_to_list(0)
 def exclude_filepaths(filepaths, exclude_patterns=None):
 	"""Exclude file paths based on regex patterns.
 

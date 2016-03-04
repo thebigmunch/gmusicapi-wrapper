@@ -3,10 +3,8 @@
 import logging
 import os
 
-from gmusicapi.utils.utils import accept_singleton
-
 from.constants import CYGPATH_RE, SUPPORTED_PLAYLIST_FORMATS, SUPPORTED_SONG_FORMATS
-from .utils import convert_cygwin_path, exclude_filepaths, filter_local_songs, get_supported_filepaths
+from .utils import cast_to_list, convert_cygwin_path, exclude_filepaths, filter_local_songs, get_supported_filepaths
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +13,7 @@ class _Base(object):
 	"""Common client wrapper methods."""
 
 	@staticmethod
-	@accept_singleton(str)
+	@cast_to_list(0)
 	def get_local_songs(
 			filepaths, include_filters=None, exclude_filters=None, all_includes=False, all_excludes=False,
 			exclude_patterns=None, max_depth=float('inf')):
@@ -69,7 +67,7 @@ class _Base(object):
 		return matched_songs, filtered_songs, excluded_songs
 
 	@staticmethod
-	@accept_singleton(str)
+	@cast_to_list(0)
 	def get_local_playlists(filepaths, exclude_patterns=None, max_depth=float('inf')):
 		"""Load playlists from local filepaths.
 
