@@ -49,7 +49,7 @@ class MobileClientWrapper(_Base):
 		except OSError:
 			logger.exception("Sorry, login failed.")
 
-		if not self.api.is_authenticated():
+		if not self.is_authenticated:
 			logger.error("Sorry, login failed.")
 
 			return False

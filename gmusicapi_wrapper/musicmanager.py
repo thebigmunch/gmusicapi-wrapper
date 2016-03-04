@@ -54,7 +54,7 @@ class MusicManagerWrapper(_Base):
 			logger.exception("Sorry, login failed.")
 			return False
 
-		if not self.api.is_authenticated():
+		if not self.is_authenticated:
 			logger.error("Sorry, login failed.")
 
 			return False

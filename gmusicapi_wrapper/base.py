@@ -21,6 +21,10 @@ class _Base(object):
 		self.api = cls(debug_logging=enable_logging)
 		self.api.logger.addHandler(logging.NullHandler())
 
+	@property
+	def is_authenticated(self):
+		return self.api.is_authenticated()
+
 	@staticmethod
 	@cast_to_list(0)
 	def get_local_songs(
