@@ -9,7 +9,7 @@ from .utils import cast_to_list, convert_cygwin_path, exclude_filepaths, filter_
 logger = logging.getLogger(__name__)
 
 
-class _Base(object):
+class _Base:
 	"""Common client wrapper methods."""
 
 	def __init__(self, cls, enable_logging=False):
