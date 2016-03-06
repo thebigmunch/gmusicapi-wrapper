@@ -39,7 +39,7 @@ setup(
 	],
 
 	install_requires=[
-		'gmusicapi >= 8.0.0',  # Python 3 support
+		'gmusicapi >= 9.0.0',  # Python 3 support, uploading/client_id fixes
 		'mutagen'
 	],
 
