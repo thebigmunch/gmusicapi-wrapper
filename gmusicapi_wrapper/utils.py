@@ -31,13 +31,25 @@ def cast_to_list(pos):
 def convert_cygwin_path(path):
 	"""Convert Unix path from Cygwin to Windows path."""
 
-	return subprocess.check_output(["cygpath", "-aw", path]).strip()  # pragma: no cover
+	try:  # pragma: no cover
+		win_path = subprocess.check_output(["cygpath", "-aw", path], universal_newlines=True).strip()
+	except (FileNotFoundError, subprocess.CalledProcessError):
+		logger.exception("Call to cygpath failed.")
+		raise
+
+	return win_path
 
 
 def _get_mutagen_metadata(filepath):
 	"""Get mutagen metadata dict from a file."""
 
-	return mutagen.File(filepath, easy=True)
+	try:
+		metadata = mutagen.File(filepath, easy=True)
+	except mutagen.MutagenError:
+		logger.warning("Can't load {} as music file.".format(filepath))
+		raise
+
+	return metadata
 
 
 def _mutagen_fields_to_single_value(metadata):
@@ -316,7 +328,6 @@ def filter_local_songs(filepaths, include_filters=None, exclude_filters=None, al
 		try:
 			song = _mutagen_fields_to_single_value(_get_mutagen_metadata(filepath))
 		except mutagen.MutagenError:
-			logger.warning("{} is not a valid music file!".format(filepath))
 			filtered_songs.append(filepath)
 		else:
 			if include_filters_norm or exclude_filters_norm:
