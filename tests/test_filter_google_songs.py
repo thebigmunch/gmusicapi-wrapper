@@ -24,7 +24,7 @@ class TestIncludeFilters:
 	def test_filter_google_songs_single_include_filters_any_match(self):
 		"""Test gmusicapi_wrapper.utils.filter_google_songs with a single include filter matching with any."""
 
-		matched, filtered = filter_google_songs(TEST_SONGS_1, include_filters=[("title", "Take")], all_include=False)
+		matched, filtered = filter_google_songs(TEST_SONGS_1, include_filters=[("title", "Take")], all_includes=False)
 		expected_matched = [TEST_SONGS_1[0]]
 		expected_filtered = [TEST_SONGS_1[1]]
 
@@ -34,7 +34,7 @@ class TestIncludeFilters:
 	def test_filter_google_songs_single_include_filters_any_no_match(self):
 		"""Test gmusicapi_wrapper.utils.filter_google_songs with a single include filter not matching with any."""
 
-		matched, filtered = filter_google_songs(TEST_SONGS_1, include_filters=[("artist", "Modest")], all_include=False)
+		matched, filtered = filter_google_songs(TEST_SONGS_1, include_filters=[("artist", "Modest")], all_includes=False)
 		expected_matched = []
 		expected_filtered = TEST_SONGS_1
 
@@ -44,7 +44,7 @@ class TestIncludeFilters:
 	def test_filter_google_songs_multiple_include_filters_any_match(self):
 		"""Test gmusicapi_wrapper.utils.filter_google_songs with multiple include filters matching with any."""
 
-		matched, filtered = filter_google_songs(TEST_SONGS_1, include_filters=[("artist", "Muse"), ("title", "Take")], all_include=False)
+		matched, filtered = filter_google_songs(TEST_SONGS_1, include_filters=[("artist", "Muse"), ("title", "Take")], all_includes=False)
 		expected_matched = TEST_SONGS_1
 		expected_filtered = []
 
@@ -55,7 +55,7 @@ class TestIncludeFilters:
 		"""Test gmusicapi_wrapper.utils.filter_google_songs with multiple include filters not matching with any."""
 
 		matched, filtered = filter_google_songs(
-			TEST_SONGS_1, include_filters=[("artist", "Modest"), ("title", "Everything")], all_include=False
+			TEST_SONGS_1, include_filters=[("artist", "Modest"), ("title", "Everything")], all_includes=False
 		)
 		expected_matched = []
 		expected_filtered = TEST_SONGS_1
@@ -63,11 +63,11 @@ class TestIncludeFilters:
 		assert matched == expected_matched
 		assert filtered == expected_filtered
 
-	def test_filter_google_songs_multiple_all_include_filters_match(self):
+	def test_filter_google_songs_multiple_all_includes_filters_match(self):
 		"""Test gmusicapi_wrapper.utils.filter_google_songs with multiple include filters matching with all."""
 
 		matched, filtered = filter_google_songs(
-			TEST_SONGS_1, include_filters=[("artist", "Muse"), ("title", "Take")], all_include=True
+			TEST_SONGS_1, include_filters=[("artist", "Muse"), ("title", "Take")], all_includes=True
 		)
 		expected_matched = [TEST_SONGS_1[0]]
 		expected_filtered = [TEST_SONGS_1[1]]
@@ -75,11 +75,11 @@ class TestIncludeFilters:
 		assert matched == expected_matched
 		assert filtered == expected_filtered
 
-	def test_filter_google_songs_multiple_all_include_filters_no_match(self):
+	def test_filter_google_songs_multiple_all_includes_filters_no_match(self):
 		"""Test gmusicapi_wrapper.utils.filter_google_songs with multiple include filters not matching with all."""
 
 		matched, filtered = filter_google_songs(
-			TEST_SONGS_1, include_filters=[("artist", "Modest"), ("title", "Take")], all_include=True
+			TEST_SONGS_1, include_filters=[("artist", "Modest"), ("title", "Take")], all_includes=True
 		)
 		expected_matched = []
 		expected_filtered = TEST_SONGS_1
@@ -139,11 +139,11 @@ class TestExcludeFilters:
 		assert matched == expected_matched
 		assert filtered == expected_filtered
 
-	def test_filter_google_songs_multiple_all_exclude_filters_match(self):
+	def test_filter_google_songs_multiple_all_excludes_filters_match(self):
 		"""Test gmusicapi_wrapper.utils.filter_google_songs with multiple exclude filters matching with all."""
 
 		matched, filtered = filter_google_songs(
-			TEST_SONGS_1, exclude_filters=[("artist", "Muse"), ("title", "Take")], all_exclude=True
+			TEST_SONGS_1, exclude_filters=[("artist", "Muse"), ("title", "Take")], all_excludes=True
 		)
 		expected_matched = [TEST_SONGS_1[1]]
 		expected_filtered = [TEST_SONGS_1[0]]
@@ -151,11 +151,11 @@ class TestExcludeFilters:
 		assert matched == expected_matched
 		assert filtered == expected_filtered
 
-	def test_filter_google_songs_multiple_all_exclude_filters_no_match(self):
+	def test_filter_google_songs_multiple_all_excludes_filters_no_match(self):
 		"""Test gmusicapi_wrapper.utils.filter_google_songs with multiple exclude filters not matching with all."""
 
 		matched, filtered = filter_google_songs(
-			TEST_SONGS_1, exclude_filters=[("artist", "Modest"), ("title", "Take")], all_exclude=True
+			TEST_SONGS_1, exclude_filters=[("artist", "Modest"), ("title", "Take")], all_excludes=True
 		)
 		expected_matched = TEST_SONGS_1
 		expected_filtered = []
