@@ -18,27 +18,27 @@ logger = logging.getLogger(__name__)
 
 
 class MusicManagerWrapper(_BaseWrapper):
-	"""Wraps gmusicapi's Musicmanager client interface to provide extra functionality and conveniences."""
+	"""Wraps gmusicapi's Musicmanager client interface to provide extra functionality and conveniences.
+
+	Parameters:
+		enable_logging (bool): Enable gmusicapi's debug_logging option.
+	"""
 
 	def __init__(self, enable_logging=False):
-		"""
-
-		:param enable_logging: Enable gmusicapi's debug_logging option.
-		"""
-
 		super().__init__(Musicmanager, enable_logging=enable_logging)
 
 	def login(self, oauth_filename="oauth", uploader_id=None):
 		"""Authenticate the gmusicapi Musicmanager instance.
 
-		Returns ``True`` on successful login or ``False`` on unsuccessful login.
+		Parameters:
+			oauth_filename (str): The filename of the oauth credentials file to use/create for login.
+				Default: ``oauth``
 
-		:param oauth_filename: The filename of the oauth credentials file to use/create for login.
-		  Default: ``oauth``
+			uploader_id (str): A unique id as a MAC address (e.g. ``'00:11:22:33:AA:BB'``).
+				This should only be provided in cases where the default (host MAC address incremented by 1) won't work.
 
-		:param uploader_id: A unique id as a MAC address (e.g. ``'00:11:22:33:AA:BB'``).
-		  This should only be provided in cases where the default (host MAC address incremented by 1)
-		  won't work.
+		Returns:
+			``True`` on successful login, ``False`` on unsuccessful login.
 		"""
 
 		oauth_cred = os.path.join(os.path.dirname(OAUTH_FILEPATH), oauth_filename + '.cred')
@@ -67,10 +67,11 @@ class MusicManagerWrapper(_BaseWrapper):
 	def logout(self, revoke_oauth=False):
 		"""Log out the gmusicapi Musicmanager instance.
 
-		Returns ``True`` on success.
+		Parameters:
+			revoke_oauth (bool): If ``True``, oauth credentials will be revoked and the corresponding oauth file will be deleted.
 
-		:param revoke_oauth: If ``True``, oauth credentials will be revoked and
-		  the corresponding oauth file will be deleted.
+		Returns:
+			``True`` on success.
 		"""
 
 		return self.api.logout(revoke_oauth=revoke_oauth)
@@ -78,32 +79,30 @@ class MusicManagerWrapper(_BaseWrapper):
 	def get_google_songs(
 		self, include_filters=None, exclude_filters=None, all_includes=False, all_excludes=False,
 		uploaded=True, purchased=True):
-		"""Create song list from user's Google Music library using gmusicapi's Musicmanager.get_uploaded_songs().
+		"""Create song list from user's Google Music library.
 
-		Returns a list of Google Music song dicts matching criteria and
-		a list of Google Music song dicts filtered out using filter criteria.
+		Parameters:
+			include_filters (list): A list of ``(field, pattern)`` tuples.
+				Fields are any valid Google Music metadata field available to the Musicmanager client.
+				Patterns are Python regex patterns.
+				Google Music songs are filtered out if the given metadata field values don't match any of the given patterns.
 
-		:param include_filters: A list of ``(field, pattern)`` tuples.
-		  Fields are any valid Google Music metadata field available to the Musicmanager client.
-		  Patterns are Python regex patterns.
+			exclude_filters (list): A list of ``(field, pattern)`` tuples.
+				Fields are any valid Google Music metadata field available to the Musicmanager client.
+				Patterns are Python regex patterns.
+				Google Music songs are filtered out if the given metadata field values match any of the given patterns.
 
-		  Google Music songs are filtered out if the given metadata field values don't match any of the given patterns.
+			all_includes (bool): If ``True``, all include_filters criteria must match to include a song.
 
-		:param exclude_filters: A list of ``(field, pattern)`` tuples.
-		  Fields are any valid Google Music metadata field available to the Musicmanager client.
-		  Patterns are Python regex patterns.
+			all_excludes (bool): If ``True``, all exclude_filters criteria must match to exclude a song.
 
-		  Google Music songs are filtered out if the given metadata field values match any of the given patterns.
+			uploaded (bool): Include uploaded songs. Default: ``True``.
 
-		:param all_includes: If ``True``, all include_filters criteria must match to include a song.
+			purchased (bool): Include purchased songs. Default: ``True``.
 
-		:param all_excludes: If ``True``, all exclude_filters criteria must match to exclude a song.
-
-		:param uploaded: Include uploaded songs.
-		  Default: True
-
-		:param purchased: Include purchased songs.
-		  Default: True
+		Returns:
+			A list of Google Music song dicts matching criteria and
+			a list of Google Music song dicts filtered out using filter criteria.
 		"""
 
 		if not uploaded and not purchased:
@@ -130,21 +129,6 @@ class MusicManagerWrapper(_BaseWrapper):
 
 	@cast_to_list(1)
 	def _download(self, songs, template=os.getcwd()):
-		"""Download the given songs one-by-one.
-
-		Yields a 2-tuple ``(download, error)`` of dictionaries.
-
-		    (
-		        {'<server id>': '<filepath>'},  # downloaded
-                {'<filepath>': '<exception>'}   # error
-		    )
-
-		:param songs: A list of Google Music song dicts.
-
-		:param template: A filepath which can include template patterns as definied by
-		  :const gmusicapi_wrapper.utils.TEMPLATE_PATTERNS:.
-		"""
-
 		for song in songs:
 			song_id = song['id']
 
@@ -201,19 +185,21 @@ class MusicManagerWrapper(_BaseWrapper):
 
 	@cast_to_list(1)
 	def download(self, songs, template=None):
-		"""Download the given songs one-by-one.
+		"""Download Google Music songs.
 
-		Yields a 2-tuple ``(download, error)`` of dictionaries.
+		Parameters:
+			songs (list or dict): Google Music song dict(s).
 
-		    (
-		        {'<server id>': '<filepath>'},  # downloaded
-                {'<filepath>': '<exception>'}   # error
-		    )
+			template (str): A filepath which can include template patterns.
 
-		:param songs: A list of Google Music song dicts.
+		Returns:
+			A 2-tuple, ``(downloaded, error)``, of dictionaries.
+			::
 
-		:param template: A filepath which can include template patterns as defined by the user or
-		  :const gmusicapi_wrapper.constants.TEMPLATE_PATTERNS:.
+				(
+					{'<server id>': '<filepath>'},  # downloaded
+					{'<filepath>': '<exception>'}   # error
+				)
 		"""
 
 		if not template:
@@ -262,30 +248,6 @@ class MusicManagerWrapper(_BaseWrapper):
 
 	@cast_to_list(1)
 	def _upload(self, filepaths, enable_matching=False, transcode_quality='320k'):
-		"""Upload the given filepaths one-by-one.
-
-		Yields a 4-tuple ``(uploaded, matched, not_uploaded, error)`` of dictionaries.
-
-		    (
-		        {'<filepath>': '<new server id>'},                 # uploaded
-                {'<filepath>': '<new server id>'},                 # matched
-                {'<filepath>': '<reason (e.g. ALREADY_EXISTS)>'},  # not_uploaded
-                {'<filepath>': '<exception>'}                      # error
-		    )
-
-		:param filepaths: A list of filepaths or a single filepath.
-
-		:param enable_matching: If ``True`` attempt to use `scan and match
-		  <http://support.google.com/googleplay/bin/answer.py?hl=en&answer=2920799&topic=2450455>`__
-		  to avoid uploading every song. This requieres ffmpeg or avconv.
-
-		:param transcode_quality: If int, pass to ffmpeg/avconv ``-q:a`` for libmp3lame `VBR quality
-		  <http://trac.ffmpeg.org/wiki/Encode/MP3#VBREncoding>'__.
-		  If string, pass to ffmpeg/avconv ``-b:a`` for libmp3lame `CBR quality
-		  <http://trac.ffmpeg.org/wiki/Encode/MP3#CBREncoding>'__.
-		  Default: '320k'
-		"""
-
 		for filepath in filepaths:
 			try:
 				logger.debug("Uploading -- {}".format(filepath))
@@ -298,32 +260,34 @@ class MusicManagerWrapper(_BaseWrapper):
 
 	@cast_to_list(1)
 	def upload(self, filepaths, enable_matching=False, transcode_quality='320k', delete_on_success=False):
-		"""Upload local filepaths to Google Music.
+		"""Upload local songs to Google Music.
 
-		Returns a list of result dictionaries.
+		Parameters:
+			filepaths (list or str): Filepath(s) to upload.
 
-			[
-		    	{'filepath': <filepath>, 'result': 'uploaded', 'id': <song_id>},                                   # uploaded
-				{'filepath': <filepath>, 'result': 'matched', 'id': <song_id>},                                    # matched
-				{'filepath': <filepath>, 'result': 'error', 'message': <error_message>},                           # error
-				{'filepath': <filepath>, 'result': 'not_uploaded', 'id': <song_id>, 'message': <reason_message>},  # not_uploaded ALREADY_EXISTS
-				{'filepath': <filepath>, 'result': 'not_uploaded', 'message': <reason_message>}                    # not_uploaded
-			]
+			enable_matching (bool): If ``True`` attempt to use `scan and match
+				<http://support.google.com/googleplay/bin/answer.py?hl=en&answer=2920799&topic=2450455>`__.
+				This requieres ffmpeg or avconv.
 
-		:param filepaths: A list of filepaths or a single filepath.
+			transcode_quality (str or int): If int, pass to ffmpeg/avconv ``-q:a`` for libmp3lame `VBR quality
+				<http://trac.ffmpeg.org/wiki/Encode/MP3#VBREncoding>'__.
+				If string, pass to ffmpeg/avconv ``-b:a`` for libmp3lame `CBR quality
+				<http://trac.ffmpeg.org/wiki/Encode/MP3#CBREncoding>'__.
+				Default: ``320k``
 
-		:param enable_matching: If ``True`` attempt to use `scan and match
-		  <http://support.google.com/googleplay/bin/answer.py?hl=en&answer=2920799&topic=2450455>`__
-		  to avoid uploading every song. This requieres ffmpeg or avconv.
+			delete_on_success (bool): Delete successfully uploaded local files. Default: ``False``
 
-		:param transcode_quality: If int, pass to ffmpeg/avconv ``-q:a`` for libmp3lame `VBR quality
-		  <http://trac.ffmpeg.org/wiki/Encode/MP3#VBREncoding>'__.
-		  If string, pass to ffmpeg/avconv ``-b:a`` for libmp3lame `CBR quality
-		  <http://trac.ffmpeg.org/wiki/Encode/MP3#CBREncoding>'__.
-		  Default: '320k'
+		Returns:
+			A list of result dictionaries.
+			::
 
-		:param delete_on_success: Delete successfully uploaded local files.
-		  Default: False
+				[
+					{'filepath': <filepath>, 'result': 'uploaded', 'id': <song_id>},  # uploaded
+					{'filepath': <filepath>, 'result': 'matched', 'id': <song_id>},  # matched
+					{'filepath': <filepath>, 'result': 'error', 'message': <error_message>},  # error
+					{'filepath': <filepath>, 'result': 'not_uploaded', 'id': <song_id>, 'message': <reason_message>},  # not_uploaded ALREADY_EXISTS
+					{'filepath': <filepath>, 'result': 'not_uploaded', 'message': <reason_message>}  # not_uploaded
+				]
 		"""
 
 		filenum = 0

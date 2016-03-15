@@ -12,27 +12,28 @@ logger = logging.getLogger(__name__)
 
 
 class MobileClientWrapper(_BaseWrapper):
-	"""Wraps gmusicapi's Mobileclient client interface to provide extra functionality and conveniences."""
+	"""Wraps gmusicapi's Mobileclient client interface to provide extra functionality and conveniences.
+
+	Parameters:
+		enable_logging (bool): Enable gmusicapi's debug_logging option.
+	"""
 
 	def __init__(self, enable_logging=False):
-		"""
-
-		:param enable_logging: Enable gmusicapi's debug_logging option.
-		"""
-
 		super().__init__(Mobileclient, enable_logging=enable_logging)
 
 	def login(self, username=None, password=None, android_id=None):
 		"""Authenticate the gmusicapi Mobileclient instance.
 
-		Returns ``True`` on successful login or ``False`` on unsuccessful login.
+		Parameters:
+			username (Optional[str]): Your Google Music username. Will be prompted if not given.
 
-		:param username: (Optional) Your Google Music username. Will be prompted if not given.
+			password (Optional[str]): Your Google Music password. Will be prompted if not given.
 
-		:param password: (Optional) Your Google Music password. Will be prompted if not given.
+			android_id (Optional[str]): The 16 hex digits from an Android device ID.
+				Default: Use gmusicapi.Mobileclient.FROM_MAC_ADDRESS to create ID from computer's MAC address.
 
-		:param android_id: (Optional) The 16 hex digits from an Android device ID.
-		  Default: Use gmusicapi.Mobileclient.FROM_MAC_ADDRESS to create ID from computer's MAC address.
+		Returns:
+			``True`` on successful login or ``False`` on unsuccessful login.
 		"""
 
 		if not username:
@@ -61,32 +62,33 @@ class MobileClientWrapper(_BaseWrapper):
 	def logout(self):
 		"""Log out the gmusicapi Mobileclient instance.
 
-		Returns ``True`` on success.
+		Returns:
+			``True`` on success.
 		"""
 
 		return self.api.logout()
 
 	def get_google_songs(self, include_filters=None, exclude_filters=None, all_includes=False, all_excludes=False):
-		"""Create song list from user's Google Music library using gmusicapi's Mobileclient.get_all_songs().
+		"""Create song list from user's Google Music library.
 
-		Returns a list of Google Music song dicts matching criteria and
-		a list of Google Music song dicts filtered out using filter criteria.
+		Parameters:
+			include_filters (list): A list of ``(field, pattern)`` tuples.
+				Fields are any valid Google Music metadata field available to the Mobileclient client.
+				Patterns are Python regex patterns.
+				Google Music songs are filtered out if the given metadata field values don't match any of the given patterns.
 
-		:param include_filters: A list of ``(field, pattern)`` tuples.
-		  Fields are any valid Google Music metadata field available to the Musicmanager client.
-		  Patterns are Python regex patterns.
+			exclude_filters (list): A list of ``(field, pattern)`` tuples.
+				Fields are any valid Google Music metadata field available to the Mobileclient client.
+				Patterns are Python regex patterns.
+				Google Music songs are filtered out if the given metadata field values match any of the given patterns.
 
-		  Google Music songs are filtered out if the given metadata field values don't match any of the given patterns.
+			all_includes (bool): If ``True``, all include_filters criteria must match to include a song.
 
-		:param exclude_filters: A list of ``(field, pattern)`` tuples.
-		  Fields are any valid Google Music metadata field available to the Musicmanager client.
-		  Patterns are Python regex patterns.
+			all_excludes (bool): If ``True``, all exclude_filters criteria must match to exclude a song.
 
-		  Google Music songs are filtered out if the given metadata field values match any of the given patterns.
-
-		:param all_includes: If ``True``, all include_filters criteria must match to include a song.
-
-		:param all_excludes: If ``True``, all exclude_filters criteria must match to exclude a song.
+		Returns:
+			A list of Google Music song dicts matching criteria and
+			a list of Google Music song dicts filtered out using filter criteria.
 		"""
 
 		logger.info("Loading Google Music songs...")
@@ -105,11 +107,13 @@ class MobileClientWrapper(_BaseWrapper):
 	def get_google_playlist(self, playlist):
 		"""Get playlist information of a user-generated Google Music playlist.
 
-		Returns the playlist dict as returned by Mobileclient.get_all_user_playlist_contents.
+		Parameters:
+			playlist (str): Name or ID of Google Music playlist. Names are case-sensitive.
+				Google allows multiple playlists with the same name.
+				If multiple playlists have the same name, the first one encountered is used.
 
-		:param playlist: Name or ID of Google Music playlist. Names are case-sensitive.
-		  Google allows multiple playlists with the same name.
-		  If multiple playlists have the same name, the first one encountered is used.
+		Returns:
+			dict: The playlist dict as returned by Mobileclient.get_all_user_playlist_contents.
 		"""
 
 		logger.info("Loading playlist {0}".format(playlist))
@@ -124,28 +128,28 @@ class MobileClientWrapper(_BaseWrapper):
 	def get_google_playlist_songs(self, playlist, include_filters=None, exclude_filters=None, all_includes=False, all_excludes=False):
 		"""Create song list from a user-generated Google Music playlist.
 
-		Returns, from given playlist, a list of Google Music song dicts matching criteria and
-		a list of Google Music song dicts filtered out using filter criteria.
+		Parameters:
+			playlist (str): Name or ID of Google Music playlist. Names are case-sensitive.
+				Google allows multiple playlists with the same name.
+				If multiple playlists have the same name, the first one encountered is used.
 
-		:param playlist: Name or ID of Google Music playlist. Names are case-sensitive.
-		  Google allows multiple playlists with the same name.
-		  If multiple playlists have the same name, the first one encountered is used.
+			include_filters (list): A list of ``(field, pattern)`` tuples.
+				Fields are any valid Google Music metadata field available to the Musicmanager client.
+				Patterns are Python regex patterns.
+				Google Music songs are filtered out if the given metadata field values don't match any of the given patterns.
 
-		:param include_filters: A list of ``(field, pattern)`` tuples.
-		  Fields are any valid Google Music metadata field available to the Musicmanager client.
-		  Patterns are Python regex patterns.
+			exclude_filters (list): A list of ``(field, pattern)`` tuples.
+				Fields are any valid Google Music metadata field available to the Musicmanager client.
+				Patterns are Python regex patterns.
+				Google Music songs are filtered out if the given metadata field values match any of the given patterns.
 
-		  Google Music songs are filtered out if the given metadata field values don't match any of the given patterns.
+			all_includes (bool): If ``True``, all include_filters criteria must match to include a song.
 
-		:param exclude_filters: A list of ``(field, pattern)`` tuples.
-		  Fields are any valid Google Music metadata field available to the Musicmanager client.
-		  Patterns are Python regex patterns.
+			all_excludes (bool): If ``True``, all exclude_filters criteria must match to exclude a song.
 
-		  Google Music songs are filtered out if the given metadata field values match any of the given patterns.
-
-		:param all_includes: If ``True``, all include_filters criteria must match to include a song.
-
-		:param all_excludes: If ``True``, all exclude_filters criteria must match to exclude a song.
+		Returns:
+			A list of Google Music song dicts in the playlist matching criteria and
+			a list of Google Music song dicts in the playlist filtered out using filter criteria.
 		"""
 
 		logger.info("Loading Google Music playlist songs...")

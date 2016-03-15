@@ -104,11 +104,13 @@ def _create_song_key(song):
 def compare_song_collections(src_songs, dest_songs):
 	"""Compare two song collections to find missing songs.
 
-	Returns a list of Google Music song dicts or filepaths of local songs from source missing in destination.
+	Parameters:
+		src_songs (list): Google Music song dicts or filepaths of local songs.
 
-	:param src_songs: A list of Google Music song dicts or filepaths of local songs.
+		dest_songs (list): Google Music song dicts or filepaths of local songs.
 
-	:param dest_songs: A list of Google Music song dicts or filepaths of local songs.
+	Returns:
+		A list of Google Music song dicts or filepaths of local songs from source missing in destination.
 	"""
 
 	missing_songs = []
@@ -134,9 +136,17 @@ def compare_song_collections(src_songs, dest_songs):
 def get_supported_filepaths(filepaths, supported_extensions, max_depth=float('inf')):
 	"""Get filepaths with supported extensions from given filepaths.
 
-	:param filepaths: A list of filepaths or a single filepath.
+	Parameters:
+		filepaths (list or str): Filepath(s) to check.
 
-	:param supported_extensions: A tuple of supported extensions or a single extension string.
+		supported_extensions (tuple or str): Supported file extensions or a single file extension.
+
+		max_depth (int): The depth in the directory tree to walk.
+			A depth of '0' limits the walk to the top directory.
+			Default: No limit.
+
+	Returns:
+		A list of supported filepaths.
 	"""
 
 	supported_filepaths = []
@@ -160,11 +170,13 @@ def get_supported_filepaths(filepaths, supported_extensions, max_depth=float('in
 def exclude_filepaths(filepaths, exclude_patterns=None):
 	"""Exclude file paths based on regex patterns.
 
-	Returns a list of filepaths to include and a list of filepaths to exclude.
+	Parameters:
+		filepaths (list or str): Filepath(s) to check.
 
-	:param filepaths: A list of filepaths or a single filepath.
+		exclude_patterns (list): Python regex patterns to check filepaths against.
 
-	:param exclude_patterns: A list of Python regex patterns.
+	Returns:
+		A list of filepaths to include and a list of filepaths to exclude.
 	"""
 
 	if not exclude_patterns:
@@ -237,26 +249,29 @@ def _normalize_filters(filters, origin=None):
 def filter_google_songs(songs, include_filters=None, exclude_filters=None, all_includes=False, all_excludes=False):
 	"""Match a Google Music song dict against a set of metadata filters.
 
-	Returns a list of Google Music song dicts matching criteria and
-	a list of Google Music song dicts filtered out using filter criteria.
+	Parameters:
+		songs (list): Google Music song dicts to filter.
 
-	:param songs: A list of Google Music song dicts.
+		include_filters (list): A list of ``(field, pattern)`` tuples.
+			Fields are any valid Google Music metadata field available to the Musicmanager client.
+			Patterns are Python regex patterns.
+			Google Music songs are filtered out if the given metadata field values don't match any of the given patterns.
 
-	:param include_filters: A list of ``(field, pattern)`` tuples.
-	  Fields are any valid Google Music metadata field available to the Musicmanager client.
-	  Patterns are Python regex patterns.
+		exclude_filters (list): A list of ``(field, pattern)`` tuples.
+			Fields are any valid Google Music metadata field available to the Musicmanager client.
+			Patterns are Python regex patterns.
+			Google Music songs are filtered out if the given metadata field values match any of the given patterns.
 
-	  Google Music songs are filtered out if the given metadata field values don't match any of the given patterns.
+		all_includes (bool): If ``True``, all include_filters criteria must match to include a song.
 
-	:param exclude_filters: A list of ``(field, pattern)`` tuples.
-	  Fields are any valid Google Music metadata field available to the Musicmanager client.
-	  Patterns are Python regex patterns.
+		all_excludes (bool): If ``True``, all exclude_filters criteria must match to exclude a song.
 
-	  Google Music songs are filtered out if the given metadata field values match any of the given patterns.
+	Returns:
+		A list of Google Music song dicts matching criteria and
+		a list of Google Music song dicts filtered out using filter criteria.
+		::
 
-	:param all_includes: If ``True``, all include_filters criteria must match to include a song.
-
-	:param all_excludes: If ``True``, all exclude_filters criteria must match to exclude a song.
+			(matched, filtered)
 	"""
 
 	matched_songs = []
@@ -280,27 +295,30 @@ def filter_google_songs(songs, include_filters=None, exclude_filters=None, all_i
 def filter_local_songs(filepaths, include_filters=None, exclude_filters=None, all_includes=False, all_excludes=False):
 	"""Match a local file against a set of metadata filters.
 
-	Returns a list of local song filepaths matching criteria and
-	a list of local song filepaths filtered out using filter criteria.
-	Invalid music files are also filtered out.
+	Parameters:
+		filepaths (list): Filepaths to filter.
 
-	:param filepaths: A list of filepaths.
+		include_filters (list): A list of ``(field, pattern)`` tuples.
+			Fields are any valid mutagen metadata fields.
+			Patterns are Python regex patterns.
+			Local songs are filtered out if the given metadata field values don't match any of the given patterns.
 
-	:param include_filters: A list of ``(field, pattern)`` tuples.
-	  Fields are any valid mutagen metadata fields.
-	  Patterns are Python regex patterns.
+		exclude_filters (list): A list of ``(field, pattern)`` tuples.
+			Fields are any valid mutagen metadata fields.
+			Patterns are Python regex patterns.
+			Local songs are filtered out if the given metadata field values match any of the given patterns.
 
-	  Local songs are filtered out if the given metadata field values don't match any of the given patterns.
+		all_includes (bool): If ``True``, all include_filters criteria must match to include a song.
 
-	:param exclude_filters: A list of ``(field, pattern)`` tuples.
-	  Fields are any valid mutagen metadata fields.
-	  Patterns are Python regex patterns.
+		all_excludes (bool): If ``True``, all exclude_filters criteria must match to exclude a song.
 
-	  Local songs are filtered out if the given metadata field values match any of the given patterns.
+	Returns:
+		A list of local song filepaths matching criteria and
+		a list of local song filepaths filtered out using filter criteria.
+		Invalid music files are also filtered out.
+		::
 
-	:param all_includes: If ``True``, all include_filters criteria must match to include a song.
-
-	:param all_excludes: If ``True``, all exclude_filters criteria must match to exclude a song.
+			(matched, filtered)
 	"""
 
 	matched_songs = []
@@ -329,14 +347,16 @@ def filter_local_songs(filepaths, include_filters=None, exclude_filters=None, al
 def template_to_filepath(template, metadata, template_patterns=None):
 	"""Create directory structure and file name based on metadata template.
 
-	Returns a filepath.
+	Parameters:
+		template (str): A filepath which can include template patterns as defined by :param template_patterns:.
 
-	:param template: A filepath which can include template patterns as defined by :param template_patterns:.
+		metadata (dict): A metadata dict.
 
-	:param metadata: A mutagen metadata dict.
+		template_patterns (dict): A dict of ``pattern: field`` pairs used to replace patterns with metadata field values.
+			Default: :const TEMPLATE_PATTERNS:
 
-	:param template_patterns: A dict of pattern:field pairs used to replace patterns with metadata field values.
-	  Default: :const TEMPLATE_PATTERNS:
+	Returns:
+		A filepath.
 	"""
 
 	if not template_patterns:
@@ -388,11 +408,12 @@ def template_to_filepath(template, metadata, template_patterns=None):
 def walk_depth(path, max_depth=float('inf')):
 	"""Walk a directory tree with configurable depth.
 
-	:param path: A directory path to walk.
+	Parameters:
+		path (str): A directory path to walk.
 
-	:param max_depth: The depth in the directory tree to walk.
-	  A depth of '0' limits the walk to the top directory.
-	  Default: Infinite depth.
+		max_depth (int): The depth in the directory tree to walk.
+			A depth of '0' limits the walk to the top directory.
+			Default: No limit.
 	"""
 
 	start_level = os.path.abspath(path).count(os.path.sep)

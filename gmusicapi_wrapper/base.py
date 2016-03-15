@@ -3,8 +3,7 @@
 import logging
 import os
 
-from.constants import CYGPATH_RE, SUPPORTED_PLAYLIST_FORMATS, SUPPORTED_SONG_FORMATS
-from .utils import cast_to_list, convert_cygwin_path, exclude_filepaths, filter_local_songs, get_supported_filepaths
+from .constants import CYGPATH_RE, SUPPORTED_PLAYLIST_FORMATS, SUPPORTED_SONG_FORMATS
 from .decorators import cast_to_list
 from .utils import convert_cygwin_path, exclude_filepaths, filter_local_songs, get_supported_filepaths
 
@@ -12,19 +11,24 @@ logger = logging.getLogger(__name__)
 
 
 class _BaseWrapper:
-	"""Common client wrapper methods."""
+	"""Common client wrapper methods.
+
+	Parameters:
+		enable_logging (bool): Enable gmusicapi's debug_logging option.
+	"""
 
 	def __init__(self, cls, enable_logging=False):
-		"""
-
-		:param enable_logging: Enable gmusicapi's debug_logging option.
-		"""
-
 		self.api = cls(debug_logging=enable_logging)
 		self.api.logger.addHandler(logging.NullHandler())
 
 	@property
 	def is_authenticated(self):
+		"""Check the authentication status of the gmusicapi client instance.
+
+		Returns:
+			``True`` if authenticated, ``False`` if not.
+		"""
+
 		return self.api.is_authenticated()
 
 	@staticmethod
@@ -34,35 +38,34 @@ class _BaseWrapper:
 			exclude_patterns=None, max_depth=float('inf')):
 		"""Load songs from local filepaths.
 
-		Returns a list of local song filepaths matching criteria,
-		a list of local song filepaths filtered out using filter criteria,
-		and a list of local song filepaths excluded using exclusion criteria.
+		Parameters:
+			filepaths (list or str): Filepath(s) to search for music files.
 
-		:param filepaths: A list of filepaths or a single filepath.
+			include_filters (list): A list of ``(field, pattern)`` tuples.
+				Fields are any valid mutagen metadata fields. Patterns are Python regex patterns.
+				Local songs are filtered out if the given metadata field values don't match any of the given patterns.
 
-		:param include_filters: A list of ``(field, pattern)`` tuples.
-		  Fields are any valid mutagen metadata fields.
-		  Patterns are Python regex patterns.
+			exclude_filters (list): A list of ``(field, pattern)`` tuples.
+				Fields are any valid mutagen metadata fields. Patterns are Python regex patterns.
+				Local songs are filtered out if the given metadata field values match any of the given patterns.
 
-		  Local songs are filtered out if the given metadata field values don't match any of the given patterns.
+			all_includes (bool): If ``True``, all include_filters criteria must match to include a song.
 
-		:param exclude_filters: A list of ``(field, pattern)`` tuples.
-		  Fields are any valid mutagen metadata fields.
-		  Patterns are Python regex patterns.
+			all_excludes (bool): If ``True``, all exclude_filters criteria must match to exclude a song.
 
-		  Local songs are filtered out if the given metadata field values match any of the given patterns.
+			exclude_patterns (list or str): Pattern(s) to exclude.
+				Patterns are Python regex patterns.
+				Filepaths are excluded if they match any of the exclude patterns.
 
-		:param all_includes: If ``True``, all include_filters criteria must match to include a song.
+			max_depth (int): The depth in the directory tree to walk.
+				A depth of '0' limits the walk to the top directory.
+				Default: No limit.
 
-		:param all_excludes: If ``True``, all exclude_filters criteria must match to exclude a song.
+		Returns:
+			A list of local song filepaths matching criteria,
+			a list of local song filepaths filtered out using filter criteria,
+			and a list of local song filepaths excluded using exclusion criteria.
 
-		:param exclude_patterns: A list of patterns to exclude.
-		  Filepaths are excluded if they match any of the exclude patterns.
-		  Patterns are Python regex patterns.
-
-		:param max_depth: The depth in the directory tree to walk.
-		  A depth of '0' limits the walk to the top directory.
-		  Default: Infinite depth.
 		"""
 
 		logger.info("Loading local songs...")
@@ -86,18 +89,20 @@ class _BaseWrapper:
 	def get_local_playlists(filepaths, exclude_patterns=None, max_depth=float('inf')):
 		"""Load playlists from local filepaths.
 
-		Returns a list of local playlist filepaths matching criteria
-		and a list of local playlist filepaths excluded using exclusion criteria.
+		Parameters:
+			filepaths (list or str): Filepath(s) to search for music files.
 
-		:param filepaths: A list of filepaths or a single filepath.
+			exclude_patterns (list or str): Pattern(s) to exclude.
+				Patterns are Python regex patterns.
+				Filepaths are excluded if they match any of the exclude patterns.
 
-		:param exclude_patterns: A list of patterns to exclude.
-		  Filepaths are excluded if they match any of the exclude patterns.
-		  Patterns are Python regex patterns.
+			max_depth (int): The depth in the directory tree to walk.
+				A depth of '0' limits the walk to the top directory.
+				Default: No limit.
 
-		:param max_depth: The depth in the directory tree to walk.
-		  A depth of '0' limits the walk to the top directory.
-		  Default: Infinite depth.
+		Returns:
+			A list of local playlist filepaths matching criteria
+			and a list of local playlist filepaths excluded using exclusion criteria.
 		"""
 
 		logger.info("Loading local playlists...")
@@ -120,31 +125,29 @@ class _BaseWrapper:
 		all_includes=False, all_excludes=False, exclude_patterns=None):
 		"""Load songs from local playlist.
 
-		Returns a list of local playlist song filepaths matching criteria,
-		a list of local playlist song filepaths filtered out using filter criteria,
-		and a list of local playlist song filepaths excluded using exclusion criteria.
+		Parameters:
+			playlist (str): An M3U(8) playlist filepath.
 
-		:param playlist: An M3U(8) playlist.
+			include_filters (list): A list of ``(field, pattern)`` tuples.
+				Fields are any valid mutagen metadata fields. Patterns are Python regex patterns.
+				Local songs are filtered out if the given metadata field values don't match any of the given patterns.
 
-		:param include_filters: A list of ``(field, pattern)`` tuples.
-		  Fields are any valid mutagen metadata fields.
-		  Patterns are Python regex patterns.
+			exclude_filters (list): A list of ``(field, pattern)`` tuples.
+				Fields are any valid mutagen metadata fields. Patterns are Python regex patterns.
+				Local songs are filtered out if the given metadata field values match any of the given patterns.
 
-		  Local songs are filtered out if the given metadata field values don't match any of the given patterns.
+			all_includes (bool): If ``True``, all include_filters criteria must match to include a song.
 
-		:param exclude_filters: A list of ``(field, pattern)`` tuples.
-		  Fields are any valid mutagen metadata fields.
-		  Patterns are Python regex patterns.
+			all_excludes (bool): If ``True``, all exclude_filters criteria must match to exclude a song.
 
-		  Local songs are filtered out if the given metadata field values match any of the given patterns.
+			exclude_patterns (list or str): Pattern(s) to exclude.
+				Patterns are Python regex patterns.
+				Filepaths are excluded if they match any of the exclude patterns.
 
-		:param all_includes: If ``True``, all include_filters criteria must match to include a song.
-
-		:param all_excludes: If ``True``, all exclude_filters criteria must match to exclude a song.
-
-		:param exclude_patterns: A list of patterns to exclude.
-		  playlist are excluded if they match any of the exclude patterns.
-		  Patterns are Python regex patterns.
+		Returns:
+			A list of local playlist song filepaths matching criteria,
+			a list of local playlist song filepaths filtered out using filter criteria,
+			and a list of local playlist song filepaths excluded using exclusion criteria.
 		"""
 
 		logger.info("Loading local playlist songs...")
