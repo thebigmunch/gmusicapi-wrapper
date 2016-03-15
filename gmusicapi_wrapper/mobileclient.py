@@ -5,13 +5,13 @@ import logging
 
 from gmusicapi.clients import Mobileclient
 
-from .base import _Base
+from .base import _BaseWrapper
 from .utils import filter_google_songs
 
 logger = logging.getLogger(__name__)
 
 
-class MobileClientWrapper(_Base):
+class MobileClientWrapper(_BaseWrapper):
 	"""Wraps gmusicapi's Mobileclient client interface to provide extra functionality and conveniences."""
 
 	def __init__(self, enable_logging=False):

@@ -9,7 +9,7 @@ import mutagen
 from gmusicapi import CallFailure
 from gmusicapi.clients import Musicmanager, OAUTH_FILEPATH
 
-from .base import _Base
+from .base import _BaseWrapper
 from .constants import CYGPATH_RE, GM_ID_RE
 from .decorators import cast_to_list
 from .utils import convert_cygwin_path, filter_google_songs, template_to_filepath
@@ -17,7 +17,7 @@ from .utils import convert_cygwin_path, filter_google_songs, template_to_filepat
 logger = logging.getLogger(__name__)
 
 
-class MusicManagerWrapper(_Base):
+class MusicManagerWrapper(_BaseWrapper):
 	"""Wraps gmusicapi's Musicmanager client interface to provide extra functionality and conveniences."""
 
 	def __init__(self, enable_logging=False):

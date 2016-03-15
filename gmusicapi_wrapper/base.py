@@ -11,7 +11,7 @@ from .utils import convert_cygwin_path, exclude_filepaths, filter_local_songs, g
 logger = logging.getLogger(__name__)
 
 
-class _Base:
+class _BaseWrapper:
 	"""Common client wrapper methods."""
 
 	def __init__(self, cls, enable_logging=False):
