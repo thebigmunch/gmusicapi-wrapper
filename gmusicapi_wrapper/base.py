@@ -5,6 +5,8 @@ import os
 
 from.constants import CYGPATH_RE, SUPPORTED_PLAYLIST_FORMATS, SUPPORTED_SONG_FORMATS
 from .utils import cast_to_list, convert_cygwin_path, exclude_filepaths, filter_local_songs, get_supported_filepaths
+from .decorators import cast_to_list
+from .utils import convert_cygwin_path, exclude_filepaths, filter_local_songs, get_supported_filepaths
 
 logger = logging.getLogger(__name__)
 

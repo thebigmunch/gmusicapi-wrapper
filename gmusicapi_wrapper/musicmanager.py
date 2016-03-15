@@ -11,7 +11,8 @@ from gmusicapi.clients import Musicmanager, OAUTH_FILEPATH
 
 from .base import _Base
 from .constants import CYGPATH_RE, GM_ID_RE
-from .utils import cast_to_list, convert_cygwin_path, filter_google_songs, template_to_filepath
+from .decorators import cast_to_list
+from .utils import convert_cygwin_path, filter_google_songs, template_to_filepath
 
 logger = logging.getLogger(__name__)
 
