@@ -76,32 +76,13 @@ def _normalize_metadata(metadata):
 	return metadata
 
 
-def _create_song_key(song):
-	"""Create dict key for a Google Muisc song dict or local song file based on metadata in the form of artist|album|title|tracknumber."""
+def _normalize_song(song):
+	"""Convert filepath to song dict while leaving song dicts untouched."""
 
-	metadata = []
-
-	song = song if isinstance(song, dict) else _mutagen_fields_to_single_value(_get_mutagen_metadata(song))
-
-	assert isinstance(song, dict)
-
-	# Replace track numbers with 0 if no tag exists.
-	if song.get('id'):
-		if not song.get('track_number'):
-			song['track_number'] = '0'
-	else:
-		if not song.get('tracknumber'):
-			song['tracknumber'] = '0'
-
-	for field in _filter_fields(song):
-		metadata.append(_normalize_metadata(song[field]))
-
-	key = '|'.join(metadata)
-
-	return key
+	return song if isinstance(song, dict) else _mutagen_fields_to_single_value(_get_mutagen_metadata(song))
 
 
-def compare_song_collections(src_songs, dest_songs):
+def compare_song_collections(src_songs, dst_songs):
 	"""Compare two song collections to find missing songs.
 
 	Parameters:
@@ -110,26 +91,15 @@ def compare_song_collections(src_songs, dest_songs):
 		dest_songs (list): Google Music song dicts or filepaths of local songs.
 
 	Returns:
-		A list of Google Music song dicts or filepaths of local songs from source missing in destination.
+		A list of Google Music song dicts or local song filepaths from source missing in destination.
 	"""
 
-	missing_songs = []
-	src_songs_keyed = {}
-	dest_songs_keyed = {}
+	def gather_field_values(song):
+		return tuple((_normalize_metadata(song[field]) for field in _filter_fields(song)))
 
-	for src_song in src_songs:
-		src_key = _create_song_key(src_song)
-		src_songs_keyed[src_key] = src_song
+	dst_songs_criteria = {gather_field_values(_normalize_song(dst_song)) for dst_song in dst_songs}
 
-	for dest_song in dest_songs:
-		dest_key = _create_song_key(dest_song)
-		dest_songs_keyed[dest_key] = dest_song
-
-	for src_key, src_song in src_songs_keyed.items():
-		if src_key not in dest_songs_keyed:
-			missing_songs.append(src_song)
-
-	return missing_songs
+	return [src_song for src_song in src_songs if gather_field_values(_normalize_song(src_song)) not in dst_songs_criteria]
 
 
 @cast_to_list(0)
