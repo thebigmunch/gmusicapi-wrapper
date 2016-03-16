@@ -1,5 +1,10 @@
 # coding=utf-8
 
+"""Music Manager functionality.
+
+	>>> from gmusicapi_wrapper import MusicManagerWrapper
+"""
+
 import logging
 import os
 import shutil
@@ -18,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 class MusicManagerWrapper(_BaseWrapper):
-	"""Wraps gmusicapi's Musicmanager client interface to provide extra functionality and conveniences.
+	"""Wrap gmusicapi's Musicmanager client interface to provide extra functionality and conveniences.
 
 	Parameters:
 		enable_logging (bool): Enable gmusicapi's debug_logging option.

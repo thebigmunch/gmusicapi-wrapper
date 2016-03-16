@@ -1,5 +1,11 @@
 # coding=utf-8
 
+"""Utility functions for gmusicapi_wrapper.
+
+	>>> import gmusicapi_wrapper.utils as gmw_utils
+	>>> from gmusicapi_wrapper.utils import ...
+"""
+
 import logging
 import os
 import re

@@ -1,5 +1,10 @@
 # coding=utf-8
 
+"""Shared wrapper functionality.
+
+	>>> from gmusicapi_wrapper.base
+"""
+
 import logging
 import os
 

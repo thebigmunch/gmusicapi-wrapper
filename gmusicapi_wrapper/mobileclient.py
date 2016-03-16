@@ -1,5 +1,10 @@
 # coding=utf-8
 
+"""Mobile Client functionality.
+
+	>>> from gmusicapi_wrapper import MobileClientWrapper
+"""
+
 import getpass
 import logging
 
@@ -12,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 class MobileClientWrapper(_BaseWrapper):
-	"""Wraps gmusicapi's Mobileclient client interface to provide extra functionality and conveniences.
+	"""Wrap gmusicapi's Mobileclient client interface to provide extra functionality and conveniences.
 
 	Parameters:
 		enable_logging (bool): Enable gmusicapi's debug_logging option.
