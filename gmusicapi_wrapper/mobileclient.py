@@ -41,13 +41,13 @@ class MobileClientWrapper(_BaseWrapper):
 			``True`` on successful login or ``False`` on unsuccessful login.
 		"""
 
-		if not username:
+		if username is None:
 			username = input("Enter your Google username or email address: ")
 
-		if not password:
+		if password is None:
 			password = getpass.getpass("Enter your Google Music password: ")
 
-		if not android_id:
+		if android_id is None:
 			android_id = Mobileclient.FROM_MAC_ADDRESS
 
 		try:

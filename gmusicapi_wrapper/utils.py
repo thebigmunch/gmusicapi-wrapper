@@ -155,7 +155,7 @@ def exclude_filepaths(filepaths, exclude_patterns=None):
 		A list of filepaths to include and a list of filepaths to exclude.
 	"""
 
-	if not exclude_patterns:
+	if exclude_patterns is not None:
 		return filepaths, []
 
 	exclude_re = re.compile("|".join(pattern for pattern in exclude_patterns))
@@ -344,7 +344,7 @@ def template_to_filepath(template, metadata, template_patterns=None):
 		A filepath.
 	"""
 
-	if not template_patterns:
+	if template_patterns is None:
 		template_patterns = TEMPLATE_PATTERNS
 
 	metadata = metadata if isinstance(metadata, dict) else _mutagen_fields_to_single_value(metadata)
