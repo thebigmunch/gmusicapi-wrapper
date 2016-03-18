@@ -181,6 +181,15 @@ def _get_valid_filter_fields():
 	return valid_fields
 
 
+def _check_filter_field(field_value, pattern):
+	"""Check a song metadata field value for a pattern."""
+
+	if isinstance(field_value, list):
+		return any(re.search(pattern, value, re.I) for value in field_value)
+	else:
+		return re.search(pattern, field_value, re.I)
+
+
 def _check_filters(song, include_filters=None, exclude_filters=None, all_includes=False, all_excludes=False):
 	"""Check a song metadata dict against a set of metadata filters."""
 
@@ -188,18 +197,18 @@ def _check_filters(song, include_filters=None, exclude_filters=None, all_include
 
 	if include_filters:
 		if all_includes:
-			if not all(field in song and re.search(value, song[field], re.I) for field, value in include_filters):
+			if not all(field in song and _check_filter_field(song[field], pattern) for field, pattern in include_filters):
 				include = False
 		else:
-			if not any(field in song and re.search(value, song[field], re.I) for field, value in include_filters):
+			if not any(field in song and _check_filter_field(song[field], pattern) for field, pattern in include_filters):
 				include = False
 
 	if exclude_filters:
 		if all_excludes:
-			if all(field in song and re.search(value, song[field], re.I) for field, value in exclude_filters):
+			if all(field in song and _check_filter_field(song[field], pattern) for field, pattern in exclude_filters):
 				include = False
 		else:
-			if any(field in song and re.search(value, song[field], re.I) for field, value in exclude_filters):
+			if any(field in song and _check_filter_field(song[field], pattern) for field, pattern in exclude_filters):
 				include = False
 
 	return include
@@ -305,7 +314,7 @@ def filter_local_songs(filepaths, include_filters=None, exclude_filters=None, al
 
 	for filepath in filepaths:
 		try:
-			song = _mutagen_fields_to_single_value(_get_mutagen_metadata(filepath))
+			song = _get_mutagen_metadata(filepath)
 		except mutagen.MutagenError:
 			filtered_songs.append(filepath)
 		else:
