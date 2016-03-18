@@ -57,7 +57,7 @@ def _split_field_to_single_value(field):
 	return split_field.group(1) or field
 
 
-def _filter_fields(song):
+def _filter_comparison_fields(song):
 	"""Filter missing artist, album, title, or track fields to improve match accuracy."""
 
 	# Need both tracknumber (mutagen) and track_number (Google Music) here.
@@ -101,7 +101,7 @@ def compare_song_collections(src_songs, dst_songs):
 	"""
 
 	def gather_field_values(song):
-		return tuple((_normalize_metadata(song[field]) for field in _filter_fields(song)))
+		return tuple((_normalize_metadata(song[field]) for field in _filter_comparison_fields(song)))
 
 	dst_songs_criteria = {gather_field_values(_normalize_song(dst_song)) for dst_song in dst_songs}
 
