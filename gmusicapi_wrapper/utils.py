@@ -368,7 +368,6 @@ def template_to_filepath(template, metadata, template_patterns=None):
 		for key in template_patterns:
 			if key in part and template_patterns[key] in metadata:
 				# Force track number to be zero-padded to 2 digits.
-				# This is a potentially temporary solution to allowing arbitrary template patterns while allowing zero-padded track numbers.
 				if any(template_patterns[key] == tracknumber_field for tracknumber_field in ['tracknumber', 'track_number']):
 					track_number = _split_field_to_single_value(metadata[template_patterns[key]])
 					metadata[template_patterns[key]] = track_number.zfill(2)
