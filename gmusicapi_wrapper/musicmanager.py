@@ -132,7 +132,7 @@ class MusicManagerWrapper(_BaseWrapper):
 
 		return matched_songs, filtered_songs
 
-	@cast_to_list(1)
+	@cast_to_list(0)
 	def _download(self, songs, template=os.getcwd()):
 		for song in songs:
 			song_id = song['id']
@@ -188,7 +188,7 @@ class MusicManagerWrapper(_BaseWrapper):
 
 			yield result
 
-	@cast_to_list(1)
+	@cast_to_list(0)
 	def download(self, songs, template=None):
 		"""Download Google Music songs.
 
@@ -251,7 +251,7 @@ class MusicManagerWrapper(_BaseWrapper):
 
 		return results
 
-	@cast_to_list(1)
+	@cast_to_list(0)
 	def _upload(self, filepaths, enable_matching=False, transcode_quality='320k'):
 		for filepath in filepaths:
 			try:
@@ -263,7 +263,7 @@ class MusicManagerWrapper(_BaseWrapper):
 
 			yield result
 
-	@cast_to_list(1)
+	@cast_to_list(0)
 	def upload(self, filepaths, enable_matching=False, transcode_quality='320k', delete_on_success=False):
 		"""Upload local songs to Google Music.
 

@@ -40,7 +40,8 @@ setup(
 
 	install_requires=[
 		'gmusicapi >= 9.0.0',  # Python 3 support, uploading/client_id fixes
-		'mutagen'
+		'mutagen',
+		'wrapt'
 	],
 
 	packages=find_packages(),
