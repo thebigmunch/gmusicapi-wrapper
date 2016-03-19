@@ -41,6 +41,8 @@ class MobileClientWrapper(_BaseWrapper):
 			``True`` on successful login or ``False`` on unsuccessful login.
 		"""
 
+		cls_name = type(self).__name__
+
 		if username is None:
 			username = input("Enter your Google username or email address: ")
 
@@ -53,14 +55,14 @@ class MobileClientWrapper(_BaseWrapper):
 		try:
 			self.api.login(username, password, android_id)
 		except OSError:
-			logger.exception("Sorry, login failed.")
+			logger.exception("{} authentication failed.".format(cls_name))
 
 		if not self.is_authenticated:
-			logger.error("Sorry, login failed.")
+			logger.warning("{} authentication failed.".format(cls_name))
 
 			return False
 
-		logger.info("Successfully logged in to Mobileclient.\n")
+		logger.info("{} authentication succeeded.\n".format(cls_name))
 
 		return True
 
@@ -101,7 +103,8 @@ class MobileClientWrapper(_BaseWrapper):
 		google_songs = self.api.get_all_songs()
 
 		matched_songs, filtered_songs = filter_google_songs(
-			google_songs, include_filters, exclude_filters, all_includes, all_excludes
+			google_songs, include_filters=include_filters, exclude_filters=exclude_filters,
+			all_includes=all_includes, all_excludes=all_excludes
 		)
 
 		logger.info("Filtered {0} Google Music songs".format(len(filtered_songs)))
@@ -168,7 +171,8 @@ class MobileClientWrapper(_BaseWrapper):
 		playlist_songs = [song for song in self.api.get_all_songs() if song['id'] in playlist_song_ids]
 
 		matched_songs, filtered_songs = filter_google_songs(
-			playlist_songs, include_filters, exclude_filters, all_includes, all_excludes
+			playlist_songs, include_filters=include_filters, exclude_filters=exclude_filters,
+			all_includes=all_includes, all_excludes=all_excludes
 		)
 
 		logger.info("Filtered {0} Google playlist songs".format(len(filtered_songs)))

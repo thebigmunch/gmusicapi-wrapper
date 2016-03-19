@@ -46,6 +46,8 @@ class MusicManagerWrapper(_BaseWrapper):
 			``True`` on successful login, ``False`` on unsuccessful login.
 		"""
 
+		cls_name = type(self).__name__
+
 		oauth_cred = os.path.join(os.path.dirname(OAUTH_FILEPATH), oauth_filename + '.cred')
 
 		try:
@@ -57,15 +59,16 @@ class MusicManagerWrapper(_BaseWrapper):
 
 				self.api.login(oauth_credentials=oauth_cred, uploader_id=uploader_id)
 		except (OSError, ValueError):
-			logger.exception("Sorry, login failed.")
+			logger.exception("{} authentication failed.".format(cls_name))
+
 			return False
 
 		if not self.is_authenticated:
-			logger.error("Sorry, login failed.")
+			logger.warning("{} authentication failed.".format(cls_name))
 
 			return False
 
-		logger.info("Successfully logged in to Musicmanager.\n")
+		logger.info("{} authentication succeeded.\n".format(cls_name))
 
 		return True
 
@@ -124,7 +127,8 @@ class MusicManagerWrapper(_BaseWrapper):
 			google_songs += self.api.get_purchased_songs()
 
 		matched_songs, filtered_songs = filter_google_songs(
-			google_songs, include_filters, exclude_filters, all_includes, all_excludes
+			google_songs, include_filters=include_filters, exclude_filters=exclude_filters,
+			all_includes=all_includes, all_excludes=all_excludes
 		)
 
 		logger.info("Filtered {0} Google Music songs".format(len(filtered_songs)))
@@ -256,7 +260,9 @@ class MusicManagerWrapper(_BaseWrapper):
 		for filepath in filepaths:
 			try:
 				logger.debug("Uploading -- {}".format(filepath))
-				uploaded, matched, not_uploaded = self.api.upload(filepath, enable_matching=enable_matching, transcode_quality=transcode_quality)
+				uploaded, matched, not_uploaded = self.api.upload(
+					filepath, enable_matching=enable_matching, transcode_quality=transcode_quality
+				)
 				result = (uploaded, matched, not_uploaded, {})
 			except CallFailure as e:
 				result = ({}, {}, {}, {filepath: e})
@@ -287,11 +293,11 @@ class MusicManagerWrapper(_BaseWrapper):
 			::
 
 				[
-					{'filepath': <filepath>, 'result': 'uploaded', 'id': <song_id>},  # uploaded
-					{'filepath': <filepath>, 'result': 'matched', 'id': <song_id>},  # matched
-					{'filepath': <filepath>, 'result': 'error', 'message': <error_message>},  # error
-					{'filepath': <filepath>, 'result': 'not_uploaded', 'id': <song_id>, 'message': <reason_message>},  # not_uploaded ALREADY_EXISTS
-					{'filepath': <filepath>, 'result': 'not_uploaded', 'message': <reason_message>}  # not_uploaded
+					{'result': 'uploaded', 'filepath': <filepath>, 'id': <song_id>},  # uploaded
+					{'result': 'matched', 'filepath': <filepath>, 'id': <song_id>},  # matched
+					{'result': 'error', 'filepath': <filepath>, 'message': <error_message>},  # error
+					{'result': 'not_uploaded', 'filepath': <filepath>, 'id': <song_id>, 'message': <reason_message>},  # not_uploaded ALREADY_EXISTS
+					{'result': 'not_uploaded', 'filepath': <filepath>, 'message': <reason_message>}  # not_uploaded
 				]
 		"""
 
@@ -315,7 +321,7 @@ class MusicManagerWrapper(_BaseWrapper):
 					)
 				)
 
-				results.append({'filepath': filepath, 'result': 'uploaded', 'id': uploaded[filepath]})
+				results.append({'result': 'uploaded', 'filepath': filepath, 'id': uploaded[filepath]})
 			elif matched:
 				logger.info(
 					"({num:>{pad}}/{total}) Successfully scanned and matched -- {file} ({song_id})".format(
@@ -323,11 +329,11 @@ class MusicManagerWrapper(_BaseWrapper):
 					)
 				)
 
-				results.append({'filepath': filepath, 'result': 'matched', 'id': matched[filepath]})
+				results.append({'result': 'matched', 'filepath': filepath, 'id': matched[filepath]})
 			elif error:
 				logger.warning("({num:>{pad}}/{total}) Error on upload -- {file}".format(num=filenum, pad=pad, total=total, file=filepath))
 
-				results.append({'filepath': filepath, 'result': 'error', 'message': error[filepath]})
+				results.append({'result': 'error', 'filepath': filepath, 'message': error[filepath]})
 				errors.update(error)
 			else:
 				if any(exist_string in not_uploaded[filepath] for exist_string in exist_strings):
@@ -341,7 +347,7 @@ class MusicManagerWrapper(_BaseWrapper):
 						)
 					)
 
-					results.append({'filepath': filepath, 'result': 'not_uploaded', 'id': song_id, 'message': not_uploaded[filepath]})
+					results.append({'result': 'not_uploaded', 'filepath': filepath, 'id': song_id, 'message': not_uploaded[filepath]})
 				else:
 					response = not_uploaded[filepath]
 
@@ -351,7 +357,7 @@ class MusicManagerWrapper(_BaseWrapper):
 						)
 					)
 
-					results.append({'filepath': filepath, 'result': 'not_uploaded', 'message': not_uploaded(filepath)})
+					results.append({'result': 'not_uploaded', 'filepath': filepath, 'message': not_uploaded(filepath)})
 
 			success = (uploaded or matched) or (not_uploaded and 'ALREADY_EXISTS' in not_uploaded[filepath])
 

@@ -132,7 +132,7 @@ def get_supported_filepaths(filepaths, supported_extensions, max_depth=float('in
 			path = convert_cygwin_path(path)
 
 		if os.path.isdir(path):
-			for root, _, files in walk_depth(path, max_depth):
+			for root, __, files in walk_depth(path, max_depth):
 				for f in files:
 					if f.lower().endswith(supported_extensions):
 						supported_filepaths.append(os.path.join(root, f))
@@ -222,7 +222,7 @@ def _normalize_filters(filters, origin=None):
 
 		for filter_field, filter_value in filters:
 			for mutagen_field, google_field in valid_fields:
-				if filter_field == mutagen_field or filter_field == google_field:
+				if (filter_field == mutagen_field) or (filter_field == google_field):
 					if origin == "local":
 						normalized_filters.append((mutagen_field, filter_value))
 					elif origin == "google":
@@ -267,7 +267,9 @@ def filter_google_songs(songs, include_filters=None, exclude_filters=None, all_i
 
 	if include_filters_norm or exclude_filters_norm:
 		for song in songs:
-			if _check_filters(song, include_filters_norm, exclude_filters_norm, all_includes, all_excludes):
+			if _check_filters(
+					song, include_filters=include_filters_norm, exclude_filters=exclude_filters_norm,
+					all_includes=all_includes, all_excludes=all_excludes):
 				matched_songs.append(song)
 			else:
 				filtered_songs.append(song)
@@ -319,7 +321,9 @@ def filter_local_songs(filepaths, include_filters=None, exclude_filters=None, al
 			filtered_songs.append(filepath)
 		else:
 			if include_filters_norm or exclude_filters_norm:
-				if _check_filters(song, include_filters_norm, exclude_filters_norm, all_includes, all_excludes):
+				if _check_filters(
+						song, include_filters=include_filters_norm, exclude_filters=exclude_filters_norm,
+						all_includes=all_includes, all_excludes=all_excludes):
 					matched_songs.append(filepath)
 				else:
 					filtered_songs.append(filepath)

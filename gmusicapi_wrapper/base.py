@@ -75,12 +75,13 @@ class _BaseWrapper:
 
 		logger.info("Loading local songs...")
 
-		supported_filepaths = get_supported_filepaths(filepaths, SUPPORTED_SONG_FORMATS, max_depth)
+		supported_filepaths = get_supported_filepaths(filepaths, SUPPORTED_SONG_FORMATS, max_depth=max_depth)
 
-		included_songs, excluded_songs = exclude_filepaths(supported_filepaths, exclude_patterns)
+		included_songs, excluded_songs = exclude_filepaths(supported_filepaths, exclude_patterns=exclude_patterns)
 
 		matched_songs, filtered_songs = filter_local_songs(
-			included_songs, include_filters, exclude_filters, all_includes, all_excludes
+			included_songs, include_filters=include_filters, exclude_filters=exclude_filters,
+			all_includes=all_includes, all_excludes=all_excludes
 		)
 
 		logger.info("Excluded {0} local songs.".format(len(excluded_songs)))
@@ -115,9 +116,9 @@ class _BaseWrapper:
 		included_playlists = []
 		excluded_playlists = []
 
-		supported_filepaths = get_supported_filepaths(filepaths, SUPPORTED_PLAYLIST_FORMATS, max_depth)
+		supported_filepaths = get_supported_filepaths(filepaths, SUPPORTED_PLAYLIST_FORMATS, max_depth=max_depth)
 
-		included_playlists, excluded_playlists = exclude_filepaths(supported_filepaths, exclude_patterns)
+		included_playlists, excluded_playlists = exclude_filepaths(supported_filepaths, exclude_patterns=exclude_patterns)
 
 		logger.info("Excluded {0} local playlists.".format(len(excluded_playlists)))
 		logger.info("Loaded {0} local playlists.".format(len(included_playlists)))
@@ -160,9 +161,7 @@ class _BaseWrapper:
 		if os.name == 'nt' and CYGPATH_RE.match(playlist):
 			playlist = convert_cygwin_path(playlist)
 
-		included_songs = []
-		excluded_songs = []
-
+		filepaths = []
 		base_filepath = os.path.dirname(os.path.abspath(playlist))
 
 		with open(playlist) as local_playlist:
@@ -175,13 +174,16 @@ class _BaseWrapper:
 					if not os.path.isabs(path):
 						path = os.path.join(base_filepath, path)
 
-					if exclude_filepaths(path, exclude_patterns) or not os.path.isfile(path):
-						excluded_songs.append(path)
-					else:
-						included_songs.append(path)
+					if os.path.isfile(path):
+						filepaths.append(path)
+
+		supported_filepaths = get_supported_filepaths(filepaths, SUPPORTED_SONG_FORMATS)
+
+		included_songs, excluded_songs = exclude_filepaths(supported_filepaths, exclude_patterns=exclude_patterns)
 
 		matched_songs, filtered_songs = filter_local_songs(
-			included_songs, include_filters, exclude_filters, all_includes, all_excludes
+			included_songs, include_filters=include_filters, exclude_filters=exclude_filters,
+			all_includes=all_includes, all_excludes=all_excludes
 		)
 
 		logger.info("Excluded {0} local playlist songs.".format(len(excluded_songs)))
