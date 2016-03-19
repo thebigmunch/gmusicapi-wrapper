@@ -202,13 +202,13 @@ class MusicManagerWrapper(_BaseWrapper):
 			template (str): A filepath which can include template patterns.
 
 		Returns:
-			A 2-tuple, ``(downloaded, error)``, of dictionaries.
+			A list of result dictionaries.
 			::
 
-				(
-					{'<server id>': '<filepath>'},  # downloaded
-					{'<filepath>': '<exception>'}   # error
-				)
+				[
+					{'result': 'downloaded', 'id': song_id, 'filepath': downloaded[song_id]},  # downloaded
+					{'result': 'error', 'id': song_id, 'message': error[song_id]}   # error
+				]
 		"""
 
 		if not template:
@@ -216,9 +216,9 @@ class MusicManagerWrapper(_BaseWrapper):
 
 		songnum = 0
 		total = len(songs)
+		results = []
 		errors = {}
 		pad = len(str(total))
-		results = []
 
 		for result in self._download(songs, template):
 			song_id = songs[songnum]['id']
@@ -232,6 +232,8 @@ class MusicManagerWrapper(_BaseWrapper):
 						num=songnum, pad=pad, total=total, file=downloaded[song_id], song_id=song_id
 					)
 				)
+
+				results.append({'result': 'downloaded', 'id': song_id, 'filepath': downloaded[song_id]})
 			elif error:
 				title = songs[songnum].get('title', "<empty>")
 				artist = songs[songnum].get('artist', "<empty>")
@@ -243,9 +245,7 @@ class MusicManagerWrapper(_BaseWrapper):
 					)
 				)
 
-				errors.update(error)
-
-			results.append(result)
+				results.append({'result': 'error', 'id': song_id, 'message': error[song_id]})
 
 		if errors:
 			logger.info("\n\nThe following errors occurred:\n")
