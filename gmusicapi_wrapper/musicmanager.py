@@ -357,7 +357,7 @@ class MusicManagerWrapper(_BaseWrapper):
 						)
 					)
 
-					results.append({'result': 'not_uploaded', 'filepath': filepath, 'message': not_uploaded(filepath)})
+					results.append({'result': 'not_uploaded', 'filepath': filepath, 'message': not_uploaded[filepath]})
 
 			success = (uploaded or matched) or (not_uploaded and 'ALREADY_EXISTS' in not_uploaded[filepath])
 
