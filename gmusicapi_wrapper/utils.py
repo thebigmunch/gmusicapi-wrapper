@@ -172,22 +172,13 @@ def exclude_filepaths(filepaths, exclude_patterns=None):
 	return included_songs, excluded_songs
 
 
-def _get_valid_filter_fields():
-	"""Enumerate valid filter fields."""
-
-	valid_fields = dict((shared, shared) for shared in ['artist', 'title', 'album'])
-	valid_fields.update({'albumartist': 'album_artist'})
-
-	return valid_fields
-
-
-def _check_filter_field(field_value, pattern):
+def _check_field_value(field_value, pattern):
 	"""Check a song metadata field value for a pattern."""
 
 	if isinstance(field_value, list):
-		return any(re.search(pattern, value, re.I) for value in field_value)
+		return any(re.search(pattern, str(value), re.I) for value in field_value)
 	else:
-		return re.search(pattern, field_value, re.I)
+		return re.search(pattern, str(field_value), re.I)
 
 
 def _check_filters(song, include_filters=None, exclude_filters=None, all_includes=False, all_excludes=False):
@@ -197,38 +188,21 @@ def _check_filters(song, include_filters=None, exclude_filters=None, all_include
 
 	if include_filters:
 		if all_includes:
-			if not all(field in song and _check_filter_field(song[field], pattern) for field, pattern in include_filters):
+			if not all(field in song and _check_field_value(song[field], pattern) for field, pattern in include_filters):
 				include = False
 		else:
-			if not any(field in song and _check_filter_field(song[field], pattern) for field, pattern in include_filters):
+			if not any(field in song and _check_field_value(song[field], pattern) for field, pattern in include_filters):
 				include = False
 
 	if exclude_filters:
 		if all_excludes:
-			if all(field in song and _check_filter_field(song[field], pattern) for field, pattern in exclude_filters):
+			if all(field in song and _check_field_value(song[field], pattern) for field, pattern in exclude_filters):
 				include = False
 		else:
-			if any(field in song and _check_filter_field(song[field], pattern) for field, pattern in exclude_filters):
+			if any(field in song and _check_field_value(song[field], pattern) for field, pattern in exclude_filters):
 				include = False
 
 	return include
-
-
-def _normalize_filters(filters, origin=None):
-	normalized_filters = []
-
-	if filters:
-		valid_fields = _get_valid_filter_fields().items()
-
-		for filter_field, filter_value in filters:
-			for mutagen_field, google_field in valid_fields:
-				if (filter_field == mutagen_field) or (filter_field == google_field):
-					if origin == "local":
-						normalized_filters.append((mutagen_field, filter_value))
-					elif origin == "google":
-						normalized_filters.append((google_field, filter_value))
-
-	return normalized_filters
 
 
 def filter_google_songs(songs, include_filters=None, exclude_filters=None, all_includes=False, all_excludes=False):
@@ -262,13 +236,10 @@ def filter_google_songs(songs, include_filters=None, exclude_filters=None, all_i
 	matched_songs = []
 	filtered_songs = []
 
-	include_filters_norm = _normalize_filters(include_filters, origin="google")
-	exclude_filters_norm = _normalize_filters(exclude_filters, origin="google")
-
-	if include_filters_norm or exclude_filters_norm:
+	if include_filters or exclude_filters:
 		for song in songs:
 			if _check_filters(
-					song, include_filters=include_filters_norm, exclude_filters=exclude_filters_norm,
+					song, include_filters=include_filters, exclude_filters=exclude_filters,
 					all_includes=all_includes, all_excludes=all_excludes):
 				matched_songs.append(song)
 			else:
@@ -311,18 +282,15 @@ def filter_local_songs(filepaths, include_filters=None, exclude_filters=None, al
 	matched_songs = []
 	filtered_songs = []
 
-	include_filters_norm = _normalize_filters(include_filters, origin="local")
-	exclude_filters_norm = _normalize_filters(exclude_filters, origin="local")
-
 	for filepath in filepaths:
 		try:
 			song = _get_mutagen_metadata(filepath)
 		except mutagen.MutagenError:
 			filtered_songs.append(filepath)
 		else:
-			if include_filters_norm or exclude_filters_norm:
+			if include_filters or exclude_filters:
 				if _check_filters(
-						song, include_filters=include_filters_norm, exclude_filters=exclude_filters_norm,
+						song, include_filters=include_filters, exclude_filters=exclude_filters,
 						all_includes=all_includes, all_excludes=all_excludes):
 					matched_songs.append(filepath)
 				else:
