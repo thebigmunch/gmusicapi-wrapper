@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 def convert_cygwin_path(path):
 	"""Convert Unix path from Cygwin to Windows path."""
 
-	try:  # pragma: no cover
+	try:
 		win_path = subprocess.check_output(["cygpath", "-aw", path], universal_newlines=True).strip()
 	except (FileNotFoundError, subprocess.CalledProcessError):
 		logger.exception("Call to cygpath failed.")
@@ -67,8 +67,8 @@ def _filter_comparison_fields(song):
 def _normalize_metadata(metadata):
 	"""Normalize metadata to improve match accuracy."""
 
-	metadata = str(metadata)  # Convert metadata to unicode.
-	metadata = metadata.lower()  # Convert to lower case.
+	metadata = str(metadata)
+	metadata = metadata.lower()
 
 	metadata = re.sub(r'\/\s*\d+', '', metadata)  # Remove "/<totaltracks>" from track number.
 	metadata = re.sub(r'^0+([0-9]+)', r'\1', metadata)  # Remove leading zero(s) from track number.

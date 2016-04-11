@@ -24,4 +24,4 @@ SUPPORTED_SONG_FORMATS = ('.mp3', '.flac', '.ogg', '.m4a')
 """tuple: File extensions of supported media formats for uploading."""
 
 SUPPORTED_PLAYLIST_FORMATS = ('.m3u', '.m3u8')
-"""tuple: FIle extensions of supported playlist formats."""
+"""tuple: File extensions of supported playlist formats."""

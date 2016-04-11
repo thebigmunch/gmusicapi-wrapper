@@ -20,4 +20,5 @@ def cast_to_list(position):
 			args = tuple(args)
 
 		return function(*args, **kwargs)
+
 	return wrapper

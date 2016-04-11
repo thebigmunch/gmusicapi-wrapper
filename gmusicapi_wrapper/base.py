@@ -84,9 +84,9 @@ class _BaseWrapper:
 			all_includes=all_includes, all_excludes=all_excludes
 		)
 
-		logger.info("Excluded {0} local songs.".format(len(excluded_songs)))
-		logger.info("Filtered {0} local songs.".format(len(filtered_songs)))
-		logger.info("Loaded {0} local songs.".format(len(matched_songs)))
+		logger.info("Excluded {0} local songs".format(len(excluded_songs)))
+		logger.info("Filtered {0} local songs".format(len(filtered_songs)))
+		logger.info("Loaded {0} local songs".format(len(matched_songs)))
 
 		return matched_songs, filtered_songs, excluded_songs
 
@@ -120,8 +120,8 @@ class _BaseWrapper:
 
 		included_playlists, excluded_playlists = exclude_filepaths(supported_filepaths, exclude_patterns=exclude_patterns)
 
-		logger.info("Excluded {0} local playlists.".format(len(excluded_playlists)))
-		logger.info("Loaded {0} local playlists.".format(len(included_playlists)))
+		logger.info("Excluded {0} local playlists".format(len(excluded_playlists)))
+		logger.info("Loaded {0} local playlists".format(len(included_playlists)))
 
 		return included_playlists, excluded_playlists
 
@@ -186,8 +186,8 @@ class _BaseWrapper:
 			all_includes=all_includes, all_excludes=all_excludes
 		)
 
-		logger.info("Excluded {0} local playlist songs.".format(len(excluded_songs)))
-		logger.info("Filtered {0} local playlist songs.".format(len(filtered_songs)))
-		logger.info("Loaded {0} local playlist songs.".format(len(matched_songs)))
+		logger.info("Excluded {0} local playlist songs".format(len(excluded_songs)))
+		logger.info("Filtered {0} local playlist songs".format(len(filtered_songs)))
+		logger.info("Loaded {0} local playlist songs".format(len(matched_songs)))
 
 		return matched_songs, filtered_songs, excluded_songs
