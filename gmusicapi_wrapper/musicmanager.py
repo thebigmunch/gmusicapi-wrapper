@@ -124,7 +124,9 @@ class MusicManagerWrapper(_BaseWrapper):
 			google_songs += self.api.get_uploaded_songs()
 
 		if purchased:
-			google_songs += self.api.get_purchased_songs()
+			for song in self.api.get_purchased_songs():
+				if song not in google_songs:
+					google_songs.append(song)
 
 		matched_songs, filtered_songs = filter_google_songs(
 			google_songs, include_filters=include_filters, exclude_filters=exclude_filters,
