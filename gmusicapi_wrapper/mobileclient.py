@@ -75,6 +75,16 @@ class MobileClientWrapper(_BaseWrapper):
 
 		return self.api.logout()
 
+	@property
+	def is_subscribed(self):
+		"""Check the subscription status of the gmusicapi client instance.
+
+		Returns:
+			``True`` if subscribed, ``False`` if not.
+		"""
+
+		return self.api.is_subscribed
+
 	def get_google_songs(self, include_filters=None, exclude_filters=None, all_includes=False, all_excludes=False):
 		"""Create song list from user's Google Music library.
 
