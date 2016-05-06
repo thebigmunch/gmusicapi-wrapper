@@ -137,7 +137,13 @@ class MusicManagerWrapper(_BaseWrapper):
 		return matched_songs, filtered_songs
 
 	@cast_to_list(0)
-	def _download(self, songs, template=os.getcwd()):
+	def _download(self, songs, template=None):
+		if not template:
+			template = os.getcwd()
+
+		if os.name == 'nt' and CYGPATH_RE.match(template):
+			template = convert_cygwin_path(template)
+
 		for song in songs:
 			song_id = song['id']
 
@@ -153,20 +159,18 @@ class MusicManagerWrapper(_BaseWrapper):
 				)
 
 				suggested_filename, audio = self.api.download_song(song_id)
-
+			except CallFailure as e:
+				result = ({}, {song_id: e})
+			else:
 				with tempfile.NamedTemporaryFile(suffix='.mp3', delete=False) as temp:
 					temp.write(audio)
 
 				metadata = mutagen.File(temp.name, easy=True)
 
-				if "%suggested%" in template:
-					template = template.replace("%suggested%", suggested_filename.replace('.mp3', ''))
-
-				if os.name == 'nt' and CYGPATH_RE.match(template):
-					template = convert_cygwin_path(template)
-
 				if template != os.getcwd():
-					filepath = template_to_filepath(template, metadata) + '.mp3'
+					suggested_filename = suggested_filename.replace('.mp3', '')
+					t = template.replace("%suggested%", suggested_filename)
+					filepath = template_to_filepath(t, metadata) + '.mp3'
 
 					dirname, basename = os.path.split(filepath)
 
@@ -187,8 +191,6 @@ class MusicManagerWrapper(_BaseWrapper):
 				shutil.move(temp.name, filepath)
 
 				result = ({song_id: filepath}, {})
-			except CallFailure as e:
-				result = ({}, {song_id: e})
 
 			yield result
 
