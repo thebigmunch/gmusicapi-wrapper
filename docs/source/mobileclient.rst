@@ -11,6 +11,7 @@ Mobile Client
 	.. automethod:: login
 	.. automethod:: logout
 	.. autoattribute:: is_authenticated
+	.. autoattribute:: is_subscribed
 	.. automethod:: get_local_songs
 	.. automethod:: get_google_songs
 	.. automethod:: get_local_playlists
