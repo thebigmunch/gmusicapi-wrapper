@@ -3,6 +3,29 @@
 Notable changes for the [gmusicapi-wrapper](https://github.com/thebigmunch/gmusicapi-wrapper) project. This project adheres to [Semantic Versioning](http://semver.org/).
 
 
+## [0.4.0](https://github.com/thebigmunch/gmusicapi-wrapper/releases/tag/0.4.0) (2016-06-03)
+
+[Commits](https://github.com/thebigmunch/gmusicapi-wrapper/compare/0.3.0...0.4.0)
+
+### Added
+
+* Add is_authenticated property to wrapper classes.
+* Add is_subscribed property to MobileClientWrapper.
+* Add exception handling to local file handlers.
+
+### Changed
+
+* A lot of refactoring.
+* Check all metadata field values for local files when filtering. Mutagen returns list values; previously only the first item in the list was checked.
+* Use wrapt module for decorators.
+* Change return of MusicManagerWrapper.download method.
+
+### Fixed
+
+* Fix code error in MusicManagerWrapper.upload that caused an error on failed uploads.
+* Fix %suggested% in template assigning same name to each song on multiple song downloads.
+
+
 ## [0.3.0](https://github.com/thebigmunch/gmusicapi-wrapper/releases/tag/0.3.0) (2016-02-29)
 
 [Commits](https://github.com/thebigmunch/gmusicapi-wrapper/compare/0.2.1...0.3.0)
@@ -28,7 +51,6 @@ Notable changes for the [gmusicapi-wrapper](https://github.com/thebigmunch/gmusi
 * Change signature of walk_depth utility function.
 * Remove formats parameter from get_local_* methods in favor of top-level constants.
 * Remove recursive parameter from get_local_* methods. max-depth=0 serves the same purpose.
-
 
 
 ## [0.2.1](https://github.com/thebigmunch/gmusicapi-wrapper/releases/tag/0.2.1) (2016-02-15)
