@@ -323,6 +323,46 @@ def get_suggested_filename(metadata):
 	return suggested_filename
 
 
+def _replace_template_patterns(template, metadata, template_patterns):
+	drive, path = os.path.splitdrive(template)
+	parts = []
+
+	while True:
+		newpath, tail = os.path.split(path)
+
+		if newpath == path:
+			break
+
+		parts.append(tail)
+		path = newpath
+
+	parts.reverse()
+
+	for i, part in enumerate(parts):
+		for key in template_patterns:
+			if key in part and template_patterns[key] in metadata:
+				# Force track number to be zero-padded to 2 digits.
+				if any(template_patterns[key] == tracknumber_field for tracknumber_field in ['tracknumber', 'track_number']):
+					track_number = _split_field_to_single_value(metadata[template_patterns[key]])
+					metadata[template_patterns[key]] = track_number.zfill(2)
+
+				parts[i] = parts[i].replace(key, metadata[template_patterns[key]])
+
+		for char in CHARACTER_REPLACEMENTS:
+			if char in parts[i]:
+				parts[i] = parts[i].replace(char, CHARACTER_REPLACEMENTS[char])
+
+	if drive:
+		filepath = os.path.join(drive, os.sep, *parts)
+	else:
+		if os.path.isabs(template):
+			filepath = os.path.join(os.sep, *parts)
+		else:
+			filepath = os.path.join(*parts)
+
+	return filepath
+
+
 def template_to_filepath(template, metadata, template_patterns=None):
 	"""Create directory structure and file name based on metadata template.
 
@@ -349,41 +389,8 @@ def template_to_filepath(template, metadata, template_patterns=None):
 	if template == os.getcwd() or template == '%suggested%':
 		filepath = suggested_filename
 	else:
-		drive, path = os.path.splitdrive(template)
-		parts = []
-
-		while True:
-			newpath, tail = os.path.split(path)
-
-			if newpath == path:
-				break
-
-			parts.append(tail)
-			path = newpath
-
-		parts.reverse()
-
-		for i, part in enumerate(parts):
-			for key in template_patterns:
-				if key in part and template_patterns[key] in metadata:
-					# Force track number to be zero-padded to 2 digits.
-					if any(template_patterns[key] == tracknumber_field for tracknumber_field in ['tracknumber', 'track_number']):
-						track_number = _split_field_to_single_value(metadata[template_patterns[key]])
-						metadata[template_patterns[key]] = track_number.zfill(2)
-
-					parts[i] = parts[i].replace(key, metadata[template_patterns[key]])
-
-			for char in CHARACTER_REPLACEMENTS:
-				if char in parts[i]:
-					parts[i] = parts[i].replace(char, CHARACTER_REPLACEMENTS[char])
-
-		if drive:
-			filepath = os.path.join(drive, os.sep, *parts)
-		else:
-			if os.path.isabs(template):
-				filepath = os.path.join(os.sep, *parts)
-			else:
-				filepath = os.path.join(*parts)
+		t = template.replace('%suggested%', suggested_filename)
+		filepath = _replace_template_patterns(t, metadata, template_patterns)
 
 	return filepath
 
