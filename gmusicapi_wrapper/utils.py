@@ -301,6 +301,28 @@ def filter_local_songs(filepaths, include_filters=None, exclude_filters=None, al
 	return matched_songs, filtered_songs
 
 
+def get_suggested_filename(metadata):
+	"""Generate a filename for a song based on metadata.
+
+	Parameters:
+		metadata (dict): A metadata dict.
+
+	Returns:
+		A filename.
+	"""
+
+	if metadata.get('title') and metadata.get('track_number'):
+		suggested_filename = '{track_number:0>2} {title}'.format(**metadata)
+	elif metadata.get('title') and metadata.get('trackNumber'):
+		suggested_filename = '{trackNumber:0>2} {title}'.format(**metadata)
+	elif metadata.get('title') and metadata.get('tracknumber'):
+		suggested_filename = '{tracknumber:0>2} {title}'.format(**metadata)
+	else:
+		suggested_filename = '00 {}'.format(metadata.get('title', ''))
+
+	return suggested_filename
+
+
 def template_to_filepath(template, metadata, template_patterns=None):
 	"""Create directory structure and file name based on metadata template.
 
@@ -322,41 +344,46 @@ def template_to_filepath(template, metadata, template_patterns=None):
 	metadata = metadata if isinstance(metadata, dict) else _mutagen_fields_to_single_value(metadata)
 	assert isinstance(metadata, dict)
 
-	drive, path = os.path.splitdrive(template)
-	parts = []
+	suggested_filename = get_suggested_filename(metadata).replace('.mp3', '')
 
-	while True:
-		newpath, tail = os.path.split(path)
-
-		if newpath == path:
-			break
-
-		parts.append(tail)
-		path = newpath
-
-	parts.reverse()
-
-	for i, part in enumerate(parts):
-		for key in template_patterns:
-			if key in part and template_patterns[key] in metadata:
-				# Force track number to be zero-padded to 2 digits.
-				if any(template_patterns[key] == tracknumber_field for tracknumber_field in ['tracknumber', 'track_number']):
-					track_number = _split_field_to_single_value(metadata[template_patterns[key]])
-					metadata[template_patterns[key]] = track_number.zfill(2)
-
-				parts[i] = parts[i].replace(key, metadata[template_patterns[key]])
-
-		for char in CHARACTER_REPLACEMENTS:
-			if char in parts[i]:
-				parts[i] = parts[i].replace(char, CHARACTER_REPLACEMENTS[char])
-
-	if drive:
-		filepath = os.path.join(drive, os.sep, *parts)
+	if template == os.getcwd() or template == '%suggested%':
+		filepath = suggested_filename
 	else:
-		if os.path.isabs(template):
-			filepath = os.path.join(os.sep, *parts)
+		drive, path = os.path.splitdrive(template)
+		parts = []
+
+		while True:
+			newpath, tail = os.path.split(path)
+
+			if newpath == path:
+				break
+
+			parts.append(tail)
+			path = newpath
+
+		parts.reverse()
+
+		for i, part in enumerate(parts):
+			for key in template_patterns:
+				if key in part and template_patterns[key] in metadata:
+					# Force track number to be zero-padded to 2 digits.
+					if any(template_patterns[key] == tracknumber_field for tracknumber_field in ['tracknumber', 'track_number']):
+						track_number = _split_field_to_single_value(metadata[template_patterns[key]])
+						metadata[template_patterns[key]] = track_number.zfill(2)
+
+					parts[i] = parts[i].replace(key, metadata[template_patterns[key]])
+
+			for char in CHARACTER_REPLACEMENTS:
+				if char in parts[i]:
+					parts[i] = parts[i].replace(char, CHARACTER_REPLACEMENTS[char])
+
+		if drive:
+			filepath = os.path.join(drive, os.sep, *parts)
 		else:
-			filepath = os.path.join(*parts)
+			if os.path.isabs(template):
+				filepath = os.path.join(os.sep, *parts)
+			else:
+				filepath = os.path.join(*parts)
 
 	return filepath
 
