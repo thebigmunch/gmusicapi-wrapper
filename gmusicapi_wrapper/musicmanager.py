@@ -149,18 +149,18 @@ class MusicManagerWrapper(_BaseWrapper):
 		for song in songs:
 			song_id = song['id']
 
-			try:
-				title = song.get('title', "<empty>")
-				artist = song.get('artist', "<empty>")
-				album = song.get('album', "<empty>")
+			title = song.get('title', "<empty>")
+			artist = song.get('artist', "<empty>")
+			album = song.get('album', "<empty>")
 
-				logger.debug(
-					"Downloading {title} -- {artist} -- {album} ({song_id})".format(
-						title=title, artist=artist, album=album, song_id=song_id
-					)
+			logger.debug(
+				"Downloading {title} -- {artist} -- {album} ({song_id})".format(
+					title=title, artist=artist, album=album, song_id=song_id
 				)
+			)
 
-				suggested_filename, audio = self.api.download_song(song_id)
+			try:
+				_, audio = self.api.download_song(song_id)
 			except CallFailure as e:
 				result = ({}, {song_id: e})
 			else:
@@ -168,22 +168,9 @@ class MusicManagerWrapper(_BaseWrapper):
 					temp.write(audio)
 
 				metadata = mutagen.File(temp.name, easy=True)
+				filepath = template_to_filepath(template, metadata) + '.mp3'
 
-				if template != os.getcwd():
-					suggested_filename = suggested_filename.replace('.mp3', '')
-					t = template.replace("%suggested%", suggested_filename)
-					filepath = template_to_filepath(t, metadata) + '.mp3'
-
-					dirname, basename = os.path.split(filepath)
-
-					if basename == '.mp3':
-						filepath = os.path.join(dirname, suggested_filename)
-				else:
-					filepath = suggested_filename
-
-				dirname = os.path.dirname(filepath)
-
-				if dirname:
+				if os.path.dirname(filepath):
 					try:
 						os.makedirs(dirname)
 					except OSError:
