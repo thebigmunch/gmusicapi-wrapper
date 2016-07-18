@@ -3,6 +3,19 @@
 Notable changes for the [gmusicapi-wrapper](https://github.com/thebigmunch/gmusicapi-wrapper) project. This project adheres to [Semantic Versioning](http://semver.org/).
 
 
+## [0.5.0](https://github.com/thebigmunch/gmusicapi-wrapper/releases/tag/0.5.0) (2016-07-18)
+
+[Commits](https://github.com/thebigmunch/gmusicapi-wrapper/compare/0.4.0...0.5.0)
+
+### Added
+
+* Add get_suggested_filename utility function.
+
+### Changed
+
+* Refactor template_to_filepath utility function.
+
+
 ## [0.4.0](https://github.com/thebigmunch/gmusicapi-wrapper/releases/tag/0.4.0) (2016-06-03)
 
 [Commits](https://github.com/thebigmunch/gmusicapi-wrapper/compare/0.3.0...0.4.0)
