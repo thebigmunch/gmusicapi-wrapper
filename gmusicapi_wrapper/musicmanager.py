@@ -169,8 +169,9 @@ class MusicManagerWrapper(_BaseWrapper):
 
 				metadata = mutagen.File(temp.name, easy=True)
 				filepath = template_to_filepath(template, metadata) + '.mp3'
+				dirname = os.path.dirname(filepath)
 
-				if os.path.dirname(filepath):
+				if dirname:
 					try:
 						os.makedirs(dirname)
 					except OSError:
