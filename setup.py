@@ -40,7 +40,7 @@ setup(
 
 	install_requires=[
 		'gmusicapi >= 10.0.0',
-		'mutagen',
+		'mutagen >= 1.33',  # TPE2 mapping to albumartist instead of performer.
 		'wrapt'
 	],
 
