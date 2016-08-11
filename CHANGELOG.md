@@ -3,6 +3,15 @@
 Notable changes for the [gmusicapi-wrapper](https://github.com/thebigmunch/gmusicapi-wrapper) project. This project adheres to [Semantic Versioning](http://semver.org/).
 
 
+## [0.5.2](https://github.com/thebigmunch/gmusicapi-wrapper/releases/tag/0.5.2) (2016-08-11)
+
+[Commits](https://github.com/thebigmunch/gmusicapi-wrapper/compare/0.5.1...0.5.2)
+
+### Fixed
+
+* Update album artist field name for mutagen change.
+
+
 ## [0.5.1](https://github.com/thebigmunch/gmusicapi-wrapper/releases/tag/0.5.1) (2016-07-25)
 
 [Commits](https://github.com/thebigmunch/gmusicapi-wrapper/compare/0.5.0...0.5.1)
