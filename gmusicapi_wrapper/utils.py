@@ -155,7 +155,7 @@ def exclude_filepaths(filepaths, exclude_patterns=None):
 		A list of filepaths to include and a list of filepaths to exclude.
 	"""
 
-	if exclude_patterns is not None:
+	if not exclude_patterns:
 		return filepaths, []
 
 	exclude_re = re.compile("|".join(pattern for pattern in exclude_patterns))
